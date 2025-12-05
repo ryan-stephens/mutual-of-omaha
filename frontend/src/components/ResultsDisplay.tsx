@@ -1,4 +1,6 @@
 import type { ExtractionResult } from '../generated/types.gen';
+import { FileJson, FileSpreadsheet, FileCode } from 'lucide-react';
+import { exportToJSON, exportToCSV, exportToXML } from '../utils/exportData';
 
 interface ResultsDisplayProps {
   result: ExtractionResult;
@@ -18,7 +20,38 @@ export const ResultsDisplay = ({ result }: ResultsDisplayProps) => {
   return (
     <div className="bg-white rounded-xl shadow-lg p-6 space-y-6">
       <div className="border-b pb-4">
-        <h2 className="text-2xl font-bold text-gray-900">Extraction Results</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-gray-900">Extraction Results</h2>
+          
+          {/* Export Buttons */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => exportToJSON(result)}
+              className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+              title="Export as JSON"
+            >
+              <FileJson className="w-4 h-4" />
+              JSON
+            </button>
+            <button
+              onClick={() => exportToCSV(result)}
+              className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
+              title="Export as CSV"
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              CSV
+            </button>
+            <button
+              onClick={() => exportToXML(result)}
+              className="flex items-center gap-2 px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm font-medium"
+              title="Export as XML"
+            >
+              <FileCode className="w-4 h-4" />
+              XML
+            </button>
+          </div>
+        </div>
+        
         <div className="mt-2 space-y-1">
           <p className="text-sm text-gray-500">
             Processed by {result.model_id || 'Claude 3'} in{' '}
