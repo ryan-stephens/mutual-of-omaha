@@ -7,7 +7,7 @@ from app.models.schemas import (
     ProcessingRequest,
     ProcessingResponse,
     ExtractionResult,
-    DocumentStatus
+    DocumentStatus,
 )
 
 __all__ = [
@@ -15,5 +15,5 @@ __all__ = [
     "ProcessingRequest",
     "ProcessingResponse",
     "ExtractionResult",
-    "DocumentStatus"
+    "DocumentStatus",
 ]

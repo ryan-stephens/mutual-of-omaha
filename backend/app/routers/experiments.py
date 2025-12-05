@@ -13,7 +13,7 @@ from app.services.experiment_service import (
     ExperimentService,
     Experiment,
     ExperimentStatus,
-    TrafficAllocation
+    TrafficAllocation,
 )
 import logging
 
@@ -26,61 +26,67 @@ experiment_service = ExperimentService()
 
 # Request/Response Models
 
+
 class PromptMetricsResponse(BaseModel):
     """Metrics for a single prompt version"""
+
     prompt_version: str
     total_requests: int
     successful_requests: int
     failed_requests: int
     success_rate: float
-    
+
     avg_processing_time_ms: float
     p50_processing_time_ms: float
     p95_processing_time_ms: float
     p99_processing_time_ms: float
-    
+
     total_input_tokens: int
     total_output_tokens: int
     total_cost_usd: float
     avg_cost_per_request: float
-    
+
     avg_field_completeness: float
     avg_fields_extracted: float
-    
+
     first_request: datetime
     last_request: datetime
 
 
 class ComparisonRequest(BaseModel):
     """Request to compare two prompt versions"""
+
     control_version: str = Field(..., description="Baseline prompt version")
     treatment_version: str = Field(..., description="New prompt version to test")
-    confidence_level: float = Field(0.95, ge=0.5, le=0.99, description="Statistical confidence level")
+    confidence_level: float = Field(
+        0.95, ge=0.5, le=0.99, description="Statistical confidence level"
+    )
 
 
 class ComparisonResponse(BaseModel):
     """Statistical comparison between prompt versions"""
+
     control_version: str
     treatment_version: str
-    
+
     control_n: int
     treatment_n: int
-    
+
     control_success_rate: float
     treatment_success_rate: float
     success_rate_delta: float
     success_rate_p_value: float
-    
+
     control_avg_time: float
     treatment_avg_time: float
     time_delta_ms: float
     time_p_value: float
-    
+
     control_avg_cost: float
     treatment_avg_cost: float
     cost_delta_usd: float
     cost_delta_pct: float
-    
+
     is_significant: bool
     confidence_level: float
     recommendation: str
@@ -88,19 +94,27 @@ class ComparisonResponse(BaseModel):
 
 class CreateExperimentRequest(BaseModel):
     """Request to create new experiment"""
+
     name: str = Field(..., description="Experiment name")
     description: str = Field(..., description="What is being tested")
     control_version: str = Field(..., description="Baseline prompt version")
     treatment_version: str = Field(..., description="New prompt version")
     traffic_allocation: TrafficAllocation = Field(TrafficAllocation.EQUAL_SPLIT)
-    target_sample_size: int = Field(100, ge=30, description="Minimum samples per variant")
+    target_sample_size: int = Field(
+        100, ge=30, description="Minimum samples per variant"
+    )
     max_duration_days: int = Field(30, ge=1, le=90)
-    min_success_rate_delta: float = Field(5.0, ge=0, description="Minimum improvement (%)")
-    max_cost_increase_pct: float = Field(20.0, ge=0, description="Maximum cost increase (%)")
+    min_success_rate_delta: float = Field(
+        5.0, ge=0, description="Minimum improvement (%)"
+    )
+    max_cost_increase_pct: float = Field(
+        20.0, ge=0, description="Maximum cost increase (%)"
+    )
 
 
 class ExperimentResponse(BaseModel):
     """Experiment details"""
+
     experiment_id: str
     name: str
     description: str
@@ -121,14 +135,15 @@ class ExperimentResponse(BaseModel):
 
 # Endpoints
 
+
 @router.get("/metrics/prompts/{prompt_version}", response_model=PromptMetricsResponse)
 async def get_prompt_metrics(
     prompt_version: str,
-    days: int = Query(7, ge=1, le=90, description="Number of days to analyze")
+    days: int = Query(7, ge=1, le=90, description="Number of days to analyze"),
 ):
     """
     Get comprehensive metrics for a prompt version
-    
+
     Returns:
     - Success rate and error rate
     - Latency percentiles (p50, p95, p99)
@@ -137,13 +152,13 @@ async def get_prompt_metrics(
     """
     try:
         metrics = metrics_service.get_prompt_metrics(prompt_version)
-        
+
         if not metrics:
             raise HTTPException(
                 status_code=404,
-                detail=f"No data found for prompt version: {prompt_version}"
+                detail=f"No data found for prompt version: {prompt_version}",
             )
-        
+
         return PromptMetricsResponse(
             prompt_version=metrics.prompt_version,
             total_requests=metrics.total_requests,
@@ -161,9 +176,9 @@ async def get_prompt_metrics(
             avg_field_completeness=metrics.avg_field_completeness,
             avg_fields_extracted=metrics.avg_fields_extracted,
             first_request=metrics.first_request,
-            last_request=metrics.last_request
+            last_request=metrics.last_request,
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -175,7 +190,7 @@ async def get_prompt_metrics(
 async def compare_prompt_versions(request: ComparisonRequest):
     """
     Statistically compare two prompt versions (A/B test analysis)
-    
+
     Returns:
     - Success rate delta with p-value
     - Processing time comparison
@@ -187,15 +202,14 @@ async def compare_prompt_versions(request: ComparisonRequest):
         result = metrics_service.compare_prompts(
             control_version=request.control_version,
             treatment_version=request.treatment_version,
-            confidence_level=request.confidence_level
+            confidence_level=request.confidence_level,
         )
-        
+
         if not result:
             raise HTTPException(
-                status_code=400,
-                detail="Insufficient data for comparison"
+                status_code=400, detail="Insufficient data for comparison"
             )
-        
+
         return ComparisonResponse(
             control_version=result.control_version,
             treatment_version=result.treatment_version,
@@ -215,9 +229,9 @@ async def compare_prompt_versions(request: ComparisonRequest):
             cost_delta_pct=result.cost_delta_pct,
             is_significant=result.is_significant,
             confidence_level=result.confidence_level,
-            recommendation=result.recommendation
+            recommendation=result.recommendation,
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -229,7 +243,7 @@ async def compare_prompt_versions(request: ComparisonRequest):
 async def create_experiment(request: CreateExperimentRequest):
     """
     Create a new A/B experiment
-    
+
     Sets up experiment configuration for testing a new prompt version
     against the current production version.
     """
@@ -243,11 +257,11 @@ async def create_experiment(request: CreateExperimentRequest):
             target_sample_size=request.target_sample_size,
             max_duration_days=request.max_duration_days,
             min_success_rate_delta=request.min_success_rate_delta,
-            max_cost_increase_pct=request.max_cost_increase_pct
+            max_cost_increase_pct=request.max_cost_increase_pct,
         )
-        
+
         return _experiment_to_response(experiment)
-        
+
     except Exception as e:
         logger.error(f"Failed to create experiment: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -256,7 +270,7 @@ async def create_experiment(request: CreateExperimentRequest):
 @router.get("/experiments", response_model=List[ExperimentResponse])
 async def list_experiments(
     status: Optional[ExperimentStatus] = Query(None, description="Filter by status"),
-    limit: int = Query(50, ge=1, le=100)
+    limit: int = Query(50, ge=1, le=100),
 ):
     """List all experiments, optionally filtered by status"""
     try:
@@ -301,18 +315,20 @@ async def start_experiment(experiment_id: str):
 async def complete_experiment(
     experiment_id: str,
     winner: str = Query(..., description="Winning version"),
-    conclusion: str = Query(..., description="Summary of results")
+    conclusion: str = Query(..., description="Summary of results"),
 ):
     """Complete an experiment with results"""
     try:
         success = experiment_service.complete_experiment(
-            experiment_id=experiment_id,
-            winner=winner,
-            conclusion=conclusion
+            experiment_id=experiment_id, winner=winner, conclusion=conclusion
         )
         if not success:
             raise HTTPException(status_code=400, detail="Failed to complete experiment")
-        return {"message": "Experiment completed", "experiment_id": experiment_id, "winner": winner}
+        return {
+            "message": "Experiment completed",
+            "experiment_id": experiment_id,
+            "winner": winner,
+        }
     except HTTPException:
         raise
     except Exception as e:
@@ -327,7 +343,10 @@ async def promote_experiment(experiment_id: str):
         success = experiment_service.promote_treatment(experiment_id)
         if not success:
             raise HTTPException(status_code=400, detail="Failed to promote treatment")
-        return {"message": "Treatment promoted to production", "experiment_id": experiment_id}
+        return {
+            "message": "Treatment promoted to production",
+            "experiment_id": experiment_id,
+        }
     except HTTPException:
         raise
     except Exception as e:
@@ -336,6 +355,7 @@ async def promote_experiment(experiment_id: str):
 
 
 # Helper functions
+
 
 def _experiment_to_response(experiment: Experiment) -> ExperimentResponse:
     """Convert Experiment to response model"""
@@ -355,5 +375,5 @@ def _experiment_to_response(experiment: Experiment) -> ExperimentResponse:
         control_requests=experiment.control_requests,
         treatment_requests=experiment.treatment_requests,
         winner=experiment.winner,
-        conclusion=experiment.conclusion
+        conclusion=experiment.conclusion,
     )

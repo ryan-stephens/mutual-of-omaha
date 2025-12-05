@@ -10,6 +10,7 @@ from enum import Enum
 
 class DocumentStatus(str, Enum):
     """Document processing status"""
+
     UPLOADED = "uploaded"
     PROCESSING = "processing"
     COMPLETED = "completed"
@@ -18,6 +19,7 @@ class DocumentStatus(str, Enum):
 
 class DocumentUploadResponse(BaseModel):
     """Response after successful document upload"""
+
     document_id: str = Field(..., description="Unique document identifier")
     filename: str = Field(..., description="Original filename")
     s3_key: str = Field(..., description="S3 object key")
@@ -27,11 +29,13 @@ class DocumentUploadResponse(BaseModel):
 
 class ProcessingRequest(BaseModel):
     """Request to process a document"""
+
     prompt_version: Optional[str] = Field(None, description="Prompt version to use")
 
 
 class ProcessingResponse(BaseModel):
     """Response after initiating processing"""
+
     document_id: str
     status: DocumentStatus
     message: str
@@ -39,12 +43,19 @@ class ProcessingResponse(BaseModel):
 
 class MedicalData(BaseModel):
     """Extracted medical data structure"""
+
     patient_name: Optional[str] = Field(None, description="Patient full name")
     date_of_birth: Optional[str] = Field(None, description="Patient DOB")
     diagnoses: List[str] = Field(default_factory=list, description="List of diagnoses")
-    medications: List[str] = Field(default_factory=list, description="List of medications")
-    lab_values: Dict[str, Any] = Field(default_factory=dict, description="Lab test results")
-    procedures: List[str] = Field(default_factory=list, description="Medical procedures")
+    medications: List[str] = Field(
+        default_factory=list, description="List of medications"
+    )
+    lab_values: Dict[str, Any] = Field(
+        default_factory=dict, description="Lab test results"
+    )
+    procedures: List[str] = Field(
+        default_factory=list, description="Medical procedures"
+    )
     allergies: List[str] = Field(default_factory=list, description="Known allergies")
     vital_signs: Dict[str, Any] = Field(default_factory=dict, description="Vital signs")
     notes: Optional[str] = Field(None, description="Additional notes")
@@ -52,6 +63,7 @@ class MedicalData(BaseModel):
 
 class ExtractionResult(BaseModel):
     """Complete extraction result with metadata"""
+
     document_id: str
     filename: str
     status: DocumentStatus
@@ -66,6 +78,7 @@ class ExtractionResult(BaseModel):
 
 class DocumentListItem(BaseModel):
     """Document list item for GET /documents"""
+
     document_id: str
     filename: str
     status: DocumentStatus

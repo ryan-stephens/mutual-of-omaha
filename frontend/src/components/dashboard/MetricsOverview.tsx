@@ -31,24 +31,25 @@ export default function MetricsOverview({ promptVersion }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setLoading(true);
-    setError(null);
+    const fetchMetrics = async () => {
+      setLoading(true);
+      setError(null);
 
-    fetch(`http://localhost:8000/api/metrics/prompts/${promptVersion}`)
-      .then(res => {
+      try {
+        const res = await fetch(`http://localhost:8000/api/metrics/prompts/${promptVersion}`);
         if (!res.ok) {
           throw new Error('No metrics data available for this version');
         }
-        return res.json();
-      })
-      .then(data => {
+        const data = await res.json();
         setMetrics(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch metrics');
+      } finally {
         setLoading(false);
-      })
-      .catch(err => {
-        setError(err.message);
-        setLoading(false);
-      });
+      }
+    };
+
+    fetchMetrics();
   }, [promptVersion]);
 
   if (loading) {

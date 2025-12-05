@@ -48,8 +48,8 @@ export default function ExperimentComparison() {
 
       const data = await response.json();
       setComparison(data);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Comparison failed');
     } finally {
       setLoading(false);
     }
