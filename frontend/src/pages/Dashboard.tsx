@@ -1,0 +1,97 @@
+import { useState, useEffect } from 'react';
+import MetricsOverview from '../components/dashboard/MetricsOverview';
+import ExperimentComparison from '../components/dashboard/ExperimentComparison';
+import PromptVersionSelector from '../components/dashboard/PromptVersionSelector';
+import CostTrends from '../components/dashboard/CostTrends';
+
+interface PromptVersion {
+  version: string;
+  is_default: boolean;
+}
+
+export default function Dashboard() {
+  const [selectedVersion, setSelectedVersion] = useState<string>('v2.0.0');
+  const [availableVersions, setAvailableVersions] = useState<PromptVersion[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Fetch available prompt versions
+    fetch('http://localhost:8000/api/prompts/versions')
+      .then(res => res.json())
+      .then(data => {
+        setAvailableVersions(
+          data.versions.map((v: string) => ({
+            version: v,
+            is_default: v === data.default_version
+          }))
+        );
+        setSelectedVersion(data.default_version);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to load versions:', err);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">MLOps Dashboard</h1>
+              <p className="text-sm text-gray-500">Medical Document Intelligence Metrics</p>
+            </div>
+            <PromptVersionSelector
+              versions={availableVersions}
+              selectedVersion={selectedVersion}
+              onVersionChange={setSelectedVersion}
+            />
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="space-y-8">
+          {/* Metrics Overview */}
+          <section>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Performance Metrics
+            </h2>
+            <MetricsOverview promptVersion={selectedVersion} />
+          </section>
+
+          {/* Cost Trends */}
+          <section>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              Cost Analysis
+            </h2>
+            <CostTrends promptVersion={selectedVersion} />
+          </section>
+
+          {/* Experiment Comparison */}
+          <section>
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              A/B Test Comparison
+            </h2>
+            <ExperimentComparison />
+          </section>
+        </div>
+      </main>
+    </div>
+  );
+}
