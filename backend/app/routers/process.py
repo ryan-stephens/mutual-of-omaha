@@ -2,19 +2,20 @@
 Processing endpoint for medical data extraction
 """
 
-from typing import Optional
-from fastapi import APIRouter, HTTPException
-from app.models.schemas import (
-    ProcessingRequest,
-    ProcessingResponse,
-    ExtractionResult,
-    DocumentStatus,
-)
-from app.services import S3Service, DynamoDBService, BedrockService
+import io
 import logging
 from datetime import datetime
+
 import PyPDF2
-import io
+from fastapi import APIRouter, HTTPException
+
+from app.models.schemas import (
+    DocumentStatus,
+    ExtractionResult,
+    ProcessingRequest,
+    ProcessingResponse,
+)
+from app.services import BedrockService, DynamoDBService, S3Service
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
