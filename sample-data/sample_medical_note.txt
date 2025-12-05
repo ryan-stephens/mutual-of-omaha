@@ -1,0 +1,68 @@
+PATIENT MEDICAL RECORD
+
+Patient Name: John Smith
+Date of Birth: 1975-03-15
+Medical Record Number: MRN-123456
+Date of Visit: 2024-12-04
+
+CHIEF COMPLAINT:
+Patient presents with complaints of increased thirst, frequent urination, and fatigue for the past 3 weeks.
+
+VITAL SIGNS:
+Blood Pressure: 145/92 mmHg
+Heart Rate: 82 bpm
+Temperature: 98.6°F (37°C)
+Respiratory Rate: 16 breaths/min
+Weight: 220 lbs
+Height: 5'10"
+
+HISTORY OF PRESENT ILLNESS:
+58-year-old male with a history of obesity and family history of diabetes presents with classic symptoms of hyperglycemia. Patient reports increased thirst (polydipsia), frequent urination (polyuria), and fatigue over the past 3 weeks. No recent infections, no chest pain, no shortness of breath.
+
+PAST MEDICAL HISTORY:
+- Hypertension (diagnosed 2010)
+- Hyperlipidemia (diagnosed 2015)
+- Obesity (BMI 31.5)
+
+CURRENT MEDICATIONS:
+- Lisinopril 20mg once daily (for hypertension)
+- Atorvastatin 40mg once daily (for cholesterol)
+- Aspirin 81mg once daily
+
+ALLERGIES:
+- Penicillin (rash)
+- Sulfa drugs (hives)
+
+LABORATORY RESULTS:
+Hemoglobin A1C: 8.2% (normal <5.7%)
+Fasting Blood Glucose: 185 mg/dL (normal 70-100 mg/dL)
+Total Cholesterol: 245 mg/dL
+LDL: 160 mg/dL
+HDL: 35 mg/dL
+Triglycerides: 280 mg/dL
+Creatinine: 1.1 mg/dL (normal 0.7-1.3)
+
+ASSESSMENT:
+1. Type 2 Diabetes Mellitus - newly diagnosed
+2. Hypertension - poorly controlled
+3. Dyslipidemia - not at goal
+4. Obesity
+
+PLAN:
+1. Start Metformin 500mg twice daily, increase to 1000mg twice daily after 1 week if tolerated
+2. Increase Lisinopril to 40mg once daily
+3. Continue Atorvastatin 40mg daily
+4. Dietary counseling - refer to nutritionist
+5. Exercise program - aim for 150 minutes/week moderate activity
+6. Diabetes education class
+7. Home glucose monitoring - check fasting and 2 hours post-meal
+8. Follow-up in 3 months with repeat labs
+
+PATIENT EDUCATION:
+Patient counseled on diabetes management, importance of blood glucose monitoring, dietary modifications, and exercise. Patient verbalizes understanding and agrees with treatment plan.
+
+_______________________________
+Dr. Sarah Johnson, MD
+Internal Medicine
+License #MD-789456
+Date: 2024-12-04

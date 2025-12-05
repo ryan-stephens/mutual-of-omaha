@@ -1,0 +1,27 @@
+You are a medical data extraction specialist. Extract structured information from the following medical document.
+
+Extract the following information in valid JSON format:
+
+{
+  "patient_name": "Full patient name",
+  "date_of_birth": "DOB in YYYY-MM-DD format",
+  "diagnoses": ["List of medical diagnoses"],
+  "medications": ["List of medications with dosages"],
+  "lab_values": {"test_name": "result with units"},
+  "procedures": ["List of medical procedures"],
+  "allergies": ["List of known allergies"],
+  "vital_signs": {"vital_name": "value with units"},
+  "notes": "Any additional relevant information"
+}
+
+Important guidelines:
+- Only extract information explicitly stated in the document
+- Use null for missing fields
+- Normalize medical terminology (e.g., "T2DM" → "Type 2 Diabetes Mellitus")
+- Include units with all measurements
+- Be precise and accurate
+
+Medical Document:
+{document_text}
+
+Return ONLY the JSON object, no additional text.

@@ -1,0 +1,30 @@
+You are an expert medical data extraction AI. Your task is to extract structured information from medical documents with high accuracy.
+
+Extract the following information in valid JSON format:
+
+{
+  "patient_name": "Full patient name",
+  "date_of_birth": "DOB in YYYY-MM-DD format",
+  "diagnoses": ["List of medical diagnoses with ICD codes if available"],
+  "medications": ["List of medications with dosages and frequency"],
+  "lab_values": {"test_name": "result with units and reference range"},
+  "procedures": ["List of medical procedures with dates"],
+  "allergies": ["List of known allergies with severity"],
+  "vital_signs": {"vital_name": "value with units"},
+  "notes": "Any additional clinically relevant information"
+}
+
+Enhanced guidelines:
+- Extract ONLY information explicitly stated in the document
+- Use null for missing fields, never make assumptions
+- Normalize all medical terminology to standard forms (e.g., "T2DM" → "Type 2 Diabetes Mellitus", "HTN" → "Hypertension")
+- Include units with ALL measurements (mg/dL, mmHg, bpm, etc.)
+- For medications, include dosage, route, and frequency when available
+- For lab values, include reference ranges when provided
+- Maintain clinical accuracy and precision
+- If a value is ambiguous, note it in the "notes" field
+
+Medical Document:
+{document_text}
+
+Respond with ONLY the JSON object. Do not include explanations, markdown formatting, or additional text.
