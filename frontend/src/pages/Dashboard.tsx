@@ -4,6 +4,7 @@ import ExperimentComparison from '../components/dashboard/ExperimentComparison';
 import PromptVersionSelector from '../components/dashboard/PromptVersionSelector';
 import CostTrends from '../components/dashboard/CostTrends';
 import LambdaMetrics from '../components/dashboard/LambdaMetrics';
+import { getPromptVersions } from '../services/api';
 
 interface PromptVersion {
   version: string;
@@ -19,9 +20,8 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('mlops');
 
   useEffect(() => {
-    // Fetch available prompt versions
-    fetch('http://localhost:8000/api/prompts/versions')
-      .then(res => res.json())
+    // Fetch available prompt versions using centralized API
+    getPromptVersions()
       .then(data => {
         setAvailableVersions(
           data.versions.map((v: string) => ({
@@ -34,6 +34,13 @@ export default function Dashboard() {
       })
       .catch(err => {
         console.error('Failed to load versions:', err);
+        // Fallback to hardcoded versions
+        setAvailableVersions([
+          { version: 'v1.0.0', is_default: false },
+          { version: 'v1.1.0', is_default: false },
+          { version: 'v2.0.0', is_default: true },
+        ]);
+        setSelectedVersion('v2.0.0');
         setLoading(false);
       });
   }, []);

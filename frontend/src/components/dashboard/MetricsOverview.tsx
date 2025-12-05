@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import config from '../../config';
 
 interface PromptMetrics {
   prompt_version: string;
@@ -36,7 +37,7 @@ export default function MetricsOverview({ promptVersion }: Props) {
       setError(null);
 
       try {
-        const res = await fetch(`http://localhost:8000/api/metrics/prompts/${promptVersion}`);
+        const res = await fetch(`${config.apiBaseUrl}/api/metrics/prompts/${promptVersion}`);
         if (!res.ok) {
           throw new Error('No metrics data available for this version');
         }

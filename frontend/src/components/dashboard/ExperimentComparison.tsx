@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import config from '../../config';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface ComparisonResult {
@@ -32,7 +33,7 @@ export default function ExperimentComparison() {
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:8000/api/metrics/compare', {
+      const response = await fetch(`${config.apiBaseUrl}/api/metrics/compare`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
