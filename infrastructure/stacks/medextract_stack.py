@@ -56,6 +56,10 @@ class MedExtractStack(Stack):
         self.experiments_table = self._create_experiments_table()
         self.lambda_role = self._create_lambda_role()
         
+        # Lambda functions for serverless API
+        self.lambda_functions = self._create_lambda_functions()
+        self.api_gateway = self._create_api_gateway()
+        
         if config.get("monitoring_alarms"):
             self.alert_topic = self._create_alert_topic()
             self._create_cloudwatch_alarms()
@@ -235,6 +239,171 @@ class MedExtractStack(Stack):
 
         return role
 
+    def _create_lambda_functions(self) -> Dict[str, lambda_.Function]:
+        """Create Lambda functions for API backend"""
+        functions = {}
+        
+        # Common environment variables
+        common_env = {
+            "DYNAMODB_TABLE": self.results_table.table_name,
+            "EXPERIMENTS_TABLE": self.experiments_table.table_name,
+            "S3_BUCKET": self.document_bucket.bucket_name,
+            "AWS_REGION": self.region,
+            "ENVIRONMENT": self.env_name,
+        }
+        
+        # Lambda Layer for shared dependencies (boto3, pydantic, etc.)
+        dependencies_layer = lambda_.LayerVersion(
+            self,
+            "DependenciesLayer",
+            code=lambda_.Code.from_asset("../backend/lambda_layer"),  # Would contain requirements
+            compatible_runtimes=[lambda_.Runtime.PYTHON_3_11],
+            description="Shared dependencies for MedExtract Lambda functions",
+        )
+        
+        # 1. Upload Handler - Process document uploads
+        functions["upload"] = lambda_.Function(
+            self,
+            "UploadFunction",
+            function_name=f"medextract-upload-{self.env_name}",
+            runtime=lambda_.Runtime.PYTHON_3_11,
+            handler="handlers.upload.handler",
+            code=lambda_.Code.from_asset("../backend/lambda"),
+            role=self.lambda_role,
+            environment=common_env,
+            memory_size=512,  # Low memory for simple S3 operations
+            timeout=Duration.seconds(60),
+            tracing=lambda_.Tracing.ACTIVE,  # X-Ray tracing
+            layers=[dependencies_layer],
+            log_retention=logs.RetentionDays.ONE_WEEK if self.env_name == "dev" else logs.RetentionDays.ONE_MONTH,
+        )
+        
+        # 2. Extract Handler - Call Bedrock for data extraction
+        functions["extract"] = lambda_.Function(
+            self,
+            "ExtractFunction",
+            function_name=f"medextract-extract-{self.env_name}",
+            runtime=lambda_.Runtime.PYTHON_3_11,
+            handler="handlers.extract.handler",
+            code=lambda_.Code.from_asset("../backend/lambda"),
+            role=self.lambda_role,
+            environment=common_env,
+            memory_size=self.config["lambda_memory"],  # Higher memory for ML inference
+            timeout=Duration.seconds(300),  # 5 min for Bedrock calls
+            tracing=lambda_.Tracing.ACTIVE,
+            layers=[dependencies_layer],
+            log_retention=logs.RetentionDays.ONE_WEEK if self.env_name == "dev" else logs.RetentionDays.ONE_MONTH,
+            reserved_concurrent_executions=self.config.get("lambda_reserved_concurrency"),  # Cost control
+        )
+        
+        # 3. Metrics Handler - Calculate MLOps metrics
+        functions["metrics"] = lambda_.Function(
+            self,
+            "MetricsFunction",
+            function_name=f"medextract-metrics-{self.env_name}",
+            runtime=lambda_.Runtime.PYTHON_3_11,
+            handler="handlers.metrics.handler",
+            code=lambda_.Code.from_asset("../backend/lambda"),
+            role=self.lambda_role,
+            environment=common_env,
+            memory_size=1024,  # Medium memory for aggregations
+            timeout=Duration.seconds(60),
+            tracing=lambda_.Tracing.ACTIVE,
+            layers=[dependencies_layer],
+            log_retention=logs.RetentionDays.ONE_WEEK if self.env_name == "dev" else logs.RetentionDays.ONE_MONTH,
+        )
+        
+        # 4. Experiment Handler - Manage A/B tests
+        functions["experiment"] = lambda_.Function(
+            self,
+            "ExperimentFunction",
+            function_name=f"medextract-experiment-{self.env_name}",
+            runtime=lambda_.Runtime.PYTHON_3_11,
+            handler="handlers.experiment.handler",
+            code=lambda_.Code.from_asset("../backend/lambda"),
+            role=self.lambda_role,
+            environment=common_env,
+            memory_size=512,
+            timeout=Duration.seconds(60),
+            tracing=lambda_.Tracing.ACTIVE,
+            layers=[dependencies_layer],
+            log_retention=logs.RetentionDays.ONE_WEEK if self.env_name == "dev" else logs.RetentionDays.ONE_MONTH,
+        )
+        
+        # Grant permissions to all functions
+        for func in functions.values():
+            self.document_bucket.grant_read_write(func)
+            self.results_table.grant_read_write_data(func)
+            self.experiments_table.grant_read_write_data(func)
+        
+        return functions
+
+    def _create_api_gateway(self) -> apigw.RestApi:
+        """Create API Gateway for Lambda functions"""
+        api = apigw.RestApi(
+            self,
+            "MedExtractApi",
+            rest_api_name=f"medextract-api-{self.env_name}",
+            description="Serverless API for MedExtract platform",
+            deploy_options=apigw.StageOptions(
+                stage_name=self.env_name,
+                tracing_enabled=True,  # X-Ray tracing
+                logging_level=apigw.MethodLoggingLevel.INFO,
+                data_trace_enabled=True,
+                metrics_enabled=True,  # CloudWatch metrics
+                throttling_rate_limit=100 if self.env_name == "prod" else 10,
+                throttling_burst_limit=200 if self.env_name == "prod" else 20,
+            ),
+            default_cors_preflight_options=apigw.CorsOptions(
+                allow_origins=["http://localhost:3000", "http://localhost:5173", "http://localhost:5174"],
+                allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+                allow_headers=["Content-Type", "Authorization"],
+            ),
+        )
+        
+        # Create API resources and integrate Lambda functions
+        api_root = api.root.add_resource("api")
+        
+        # /api/upload
+        upload_resource = api_root.add_resource("upload")
+        upload_resource.add_method(
+            "POST",
+            apigw.LambdaIntegration(self.lambda_functions["upload"]),
+        )
+        
+        # /api/extract/{document_id}
+        extract_resource = api_root.add_resource("extract")
+        extract_doc = extract_resource.add_resource("{document_id}")
+        extract_doc.add_method(
+            "POST",
+            apigw.LambdaIntegration(self.lambda_functions["extract"]),
+        )
+        
+        # /api/metrics/*
+        metrics_resource = api_root.add_resource("metrics")
+        metrics_resource.add_method(
+            "GET",
+            apigw.LambdaIntegration(self.lambda_functions["metrics"]),
+        )
+        metrics_prompts = metrics_resource.add_resource("prompts").add_resource("{version}")
+        metrics_prompts.add_method(
+            "GET",
+            apigw.LambdaIntegration(self.lambda_functions["metrics"]),
+        )
+        
+        # /api/experiments/*
+        experiments_resource = api_root.add_resource("experiments")
+        experiments_resource.add_method(
+            "GET",
+            apigw.LambdaIntegration(self.lambda_functions["experiment"]),
+        )
+        experiments_resource.add_method(
+            "POST",
+            apigw.LambdaIntegration(self.lambda_functions["experiment"]),
+        )
+        
+        return api
+
     def _create_alert_topic(self) -> sns.Topic:
         """Create SNS topic for CloudWatch alarms"""
         topic = sns.Topic(
@@ -331,6 +500,32 @@ class MedExtractStack(Stack):
             value=self.lambda_role.role_arn,
             description="IAM role for Lambda execution",
             export_name=f"MedExtract-{self.env_name}-LambdaRole",
+        )
+
+        # Lambda function outputs
+        CfnOutput(
+            self,
+            "UploadFunctionArn",
+            value=self.lambda_functions["upload"].function_arn,
+            description="Upload Lambda function ARN",
+            export_name=f"MedExtract-{self.env_name}-UploadFunction",
+        )
+
+        CfnOutput(
+            self,
+            "ExtractFunctionArn",
+            value=self.lambda_functions["extract"].function_arn,
+            description="Extract Lambda function ARN",
+            export_name=f"MedExtract-{self.env_name}-ExtractFunction",
+        )
+
+        # API Gateway output
+        CfnOutput(
+            self,
+            "ApiGatewayUrl",
+            value=self.api_gateway.url,
+            description="API Gateway endpoint URL",
+            export_name=f"MedExtract-{self.env_name}-ApiUrl",
         )
 
         if self.config.get("monitoring_alarms"):

@@ -26,7 +26,8 @@ env_config = {
         "dynamodb_billing_mode": "PAY_PER_REQUEST",
         "s3_lifecycle_days": 30,
         "enable_deletion_protection": False,
-        "lambda_memory_mb": 512,
+        "lambda_memory": 512,  # MB for extract function
+        "lambda_reserved_concurrency": None,  # No limit in dev
         "api_throttle_rate": 100,
         "api_throttle_burst": 200,
         "monitoring_alarms": False,
@@ -35,7 +36,8 @@ env_config = {
         "dynamodb_billing_mode": "PAY_PER_REQUEST",
         "s3_lifecycle_days": 90,
         "enable_deletion_protection": True,
-        "lambda_memory_mb": 1024,
+        "lambda_memory": 1024,
+        "lambda_reserved_concurrency": 50,  # Cost control
         "api_throttle_rate": 500,
         "api_throttle_burst": 1000,
         "monitoring_alarms": True,
@@ -46,7 +48,8 @@ env_config = {
         "dynamodb_write_capacity": 5,
         "s3_lifecycle_days": 365,
         "enable_deletion_protection": True,
-        "lambda_memory_mb": 2048,
+        "lambda_memory": 2048,  # High memory for production ML
+        "lambda_reserved_concurrency": 100,  # Reserve capacity
         "api_throttle_rate": 1000,
         "api_throttle_burst": 2000,
         "monitoring_alarms": True,
