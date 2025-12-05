@@ -33,6 +33,8 @@ export const FileUpload = ({ onFileSelect, isProcessing }: FileUploadProps) => {
     const files = e.target.files;
     if (files && files[0]) {
       onFileSelect(files[0]);
+      // Reset input so same file can be selected again
+      e.target.value = '';
     }
   }, [onFileSelect]);
 

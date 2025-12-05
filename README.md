@@ -8,25 +8,33 @@ AI-powered medical document extraction system using AWS Bedrock, built to demons
 
 - ✅ **AWS Bedrock Integration** - Claude 3 for medical text extraction
 - ✅ **Full-Stack Development** - React TypeScript frontend + Python FastAPI backend
+- ✅ **Hybrid Architecture** - FastAPI (local dev) + Lambda (production)
 - ✅ **Cloud Infrastructure** - S3, DynamoDB, Lambda, API Gateway
 - ✅ **MLOps Practices** - Prompt versioning, monitoring, A/B testing
 - ✅ **Healthcare Domain** - Medical data extraction and structuring
 
 ## 🏗️ Architecture
 
+### Hybrid Deployment Model
+
+**Development (Local):**
 ```
-React Frontend (TypeScript)
-    ↓ HTTPS
-AWS API Gateway
-    ↓
-Lambda (Python + FastAPI)
-    ↓
-├── S3 (Documents)
-├── Bedrock (Claude 3)
-└── DynamoDB (Results)
-    ↓
-CloudWatch (Monitoring)
+React Frontend → FastAPI (localhost:8000) → AWS Services
+                    ├─ S3
+                    ├─ DynamoDB
+                    └─ Bedrock
 ```
+
+**Production (Serverless):**
+```
+React Frontend → API Gateway → Lambda Functions → AWS Services
+                                ├─ upload.py
+                                ├─ extract.py
+                                ├─ metrics.py
+                                └─ experiment.py
+```
+
+**Key Feature:** Same business logic (`app/services/`) used by both FastAPI and Lambda!
 
 ## 🚀 Quick Start
 
@@ -219,11 +227,26 @@ GET /api/documents
 - ⏳ **Day 11-12:** MLOps features (versioning, monitoring)
 - ⏳ **Day 13:** Documentation and demo video
 
-## 🔗 Resources
+## 📚 Documentation
+
+### Architecture & Deployment
+- **[HYBRID_ARCHITECTURE.md](HYBRID_ARCHITECTURE.md)** - Architecture overview and quick start guide
+- **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** - Complete deployment guide (local + AWS Lambda)
+- **[docs/LAMBDA_ARCHITECTURE.md](docs/LAMBDA_ARCHITECTURE.md)** - Lambda architecture details
+- **[IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md)** - Recent implementation summary
+
+### Setup Guides
+- **[backend/README.md](backend/README.md)** - Backend setup and API documentation
+- **[frontend/README.md](frontend/README.md)** - Frontend setup and development
+
+### Planning
+- **[PROJECT_PLAN.md](PROJECT_PLAN.md)** - Original development roadmap
+
+## 🔗 External Resources
 
 - [AWS Bedrock Documentation](https://docs.aws.amazon.com/bedrock/)
 - [FastAPI Documentation](https://fastapi.tiangolo.com/)
-- [Project Plan](PROJECT_PLAN.md) - Detailed development roadmap
+- [AWS CDK Python Guide](https://docs.aws.amazon.com/cdk/v2/guide/work-with-cdk-python.html)
 
 ## 👤 Author
 

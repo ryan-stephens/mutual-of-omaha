@@ -15,10 +15,17 @@ logger = logging.getLogger(__name__)
 class S3Service:
     """Service for interacting with AWS S3"""
 
-    def __init__(self):
+    def __init__(self, skip_bucket_check=False):
+        """
+        Initialize S3 service
+        
+        Args:
+            skip_bucket_check: If True, skip bucket existence check (useful for Lambda)
+        """
         self.s3_client = boto3.client("s3", region_name=settings.AWS_REGION)
         self.bucket_name = settings.S3_BUCKET_NAME
-        self._ensure_bucket_exists()
+        if not skip_bucket_check:
+            self._ensure_bucket_exists()
 
     def _ensure_bucket_exists(self):
         """Create S3 bucket if it doesn't exist"""

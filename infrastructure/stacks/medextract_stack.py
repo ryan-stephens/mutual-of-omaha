@@ -10,6 +10,7 @@ from aws_cdk import (
     RemovalPolicy,
     Duration,
     CfnOutput,
+    BundlingOptions,
     aws_s3 as s3,
     aws_dynamodb as dynamodb,
     aws_iam as iam,
@@ -218,8 +219,7 @@ class MedExtractStack(Stack):
                     "bedrock:InvokeModelWithResponseStream",
                 ],
                 resources=[
-                    f"arn:aws:bedrock:{self.region}::foundation-model/anthropic.claude-3-haiku-*",
-                    f"arn:aws:bedrock:{self.region}::foundation-model/anthropic.claude-3-sonnet-*",
+                    f"arn:aws:bedrock:{self.region}::foundation-model/anthropic.claude-*",
                 ],
             )
         )
@@ -251,13 +251,14 @@ class MedExtractStack(Stack):
             "ENVIRONMENT": self.env_name,
         }
         
-        # Lambda Layer for shared dependencies (boto3, pydantic, etc.)
-        dependencies_layer = lambda_.LayerVersion(
-            self,
-            "DependenciesLayer",
-            code=lambda_.Code.from_asset("../backend/lambda_layer"),  # Would contain requirements
-            compatible_runtimes=[lambda_.Runtime.PYTHON_3_11],
-            description="Shared dependencies for MedExtract Lambda functions",
+        # Common bundling configuration for all Lambda functions
+        # Bundles Python dependencies using Docker
+        bundling_config = BundlingOptions(
+            image=lambda_.Runtime.PYTHON_3_11.bundling_image,
+            command=[
+                "bash", "-c",
+                "pip install -r requirements.txt -t /asset-output && cp -r . /asset-output"
+            ],
         )
         
         # 1. Upload Handler - Process document uploads
@@ -266,14 +267,13 @@ class MedExtractStack(Stack):
             "UploadFunction",
             function_name=f"medextract-upload-{self.env_name}",
             runtime=lambda_.Runtime.PYTHON_3_11,
-            handler="handlers.upload.handler",
-            code=lambda_.Code.from_asset("../backend/lambda"),
+            handler="lambda.handlers.upload.handler",
+            code=lambda_.Code.from_asset("../backend", bundling=bundling_config),
             role=self.lambda_role,
             environment=common_env,
             memory_size=512,  # Low memory for simple S3 operations
             timeout=Duration.seconds(60),
             tracing=lambda_.Tracing.ACTIVE,  # X-Ray tracing
-            layers=[dependencies_layer],
             log_retention=logs.RetentionDays.ONE_WEEK if self.env_name == "dev" else logs.RetentionDays.ONE_MONTH,
         )
         
@@ -283,14 +283,13 @@ class MedExtractStack(Stack):
             "ExtractFunction",
             function_name=f"medextract-extract-{self.env_name}",
             runtime=lambda_.Runtime.PYTHON_3_11,
-            handler="handlers.extract.handler",
-            code=lambda_.Code.from_asset("../backend/lambda"),
+            handler="lambda.handlers.extract.handler",
+            code=lambda_.Code.from_asset("../backend", bundling=bundling_config),
             role=self.lambda_role,
             environment=common_env,
             memory_size=self.config["lambda_memory"],  # Higher memory for ML inference
             timeout=Duration.seconds(300),  # 5 min for Bedrock calls
             tracing=lambda_.Tracing.ACTIVE,
-            layers=[dependencies_layer],
             log_retention=logs.RetentionDays.ONE_WEEK if self.env_name == "dev" else logs.RetentionDays.ONE_MONTH,
             reserved_concurrent_executions=self.config.get("lambda_reserved_concurrency"),  # Cost control
         )
@@ -301,14 +300,13 @@ class MedExtractStack(Stack):
             "MetricsFunction",
             function_name=f"medextract-metrics-{self.env_name}",
             runtime=lambda_.Runtime.PYTHON_3_11,
-            handler="handlers.metrics.handler",
-            code=lambda_.Code.from_asset("../backend/lambda"),
+            handler="lambda.handlers.metrics.handler",
+            code=lambda_.Code.from_asset("../backend", bundling=bundling_config),
             role=self.lambda_role,
             environment=common_env,
             memory_size=1024,  # Medium memory for aggregations
             timeout=Duration.seconds(60),
             tracing=lambda_.Tracing.ACTIVE,
-            layers=[dependencies_layer],
             log_retention=logs.RetentionDays.ONE_WEEK if self.env_name == "dev" else logs.RetentionDays.ONE_MONTH,
         )
         
@@ -318,14 +316,13 @@ class MedExtractStack(Stack):
             "ExperimentFunction",
             function_name=f"medextract-experiment-{self.env_name}",
             runtime=lambda_.Runtime.PYTHON_3_11,
-            handler="handlers.experiment.handler",
-            code=lambda_.Code.from_asset("../backend/lambda"),
+            handler="lambda.handlers.experiment.handler",
+            code=lambda_.Code.from_asset("../backend", bundling=bundling_config),
             role=self.lambda_role,
             environment=common_env,
             memory_size=512,
             timeout=Duration.seconds(60),
             tracing=lambda_.Tracing.ACTIVE,
-            layers=[dependencies_layer],
             log_retention=logs.RetentionDays.ONE_WEEK if self.env_name == "dev" else logs.RetentionDays.ONE_MONTH,
         )
         
@@ -347,8 +344,9 @@ class MedExtractStack(Stack):
             deploy_options=apigw.StageOptions(
                 stage_name=self.env_name,
                 tracing_enabled=True,  # X-Ray tracing
-                logging_level=apigw.MethodLoggingLevel.INFO,
-                data_trace_enabled=True,
+                # Logging disabled - requires CloudWatch Logs role setup in account
+                # logging_level=apigw.MethodLoggingLevel.INFO,
+                # data_trace_enabled=True,
                 metrics_enabled=True,  # CloudWatch metrics
                 throttling_rate_limit=100 if self.env_name == "prod" else 10,
                 throttling_burst_limit=200 if self.env_name == "prod" else 20,
@@ -374,6 +372,14 @@ class MedExtractStack(Stack):
         extract_resource = api_root.add_resource("extract")
         extract_doc = extract_resource.add_resource("{document_id}")
         extract_doc.add_method(
+            "POST",
+            apigw.LambdaIntegration(self.lambda_functions["extract"]),
+        )
+        
+        # /api/process/{document_id} (alias for extract)
+        process_resource = api_root.add_resource("process")
+        process_doc = process_resource.add_resource("{document_id}")
+        process_doc.add_method(
             "POST",
             apigw.LambdaIntegration(self.lambda_functions["extract"]),
         )
