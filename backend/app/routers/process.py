@@ -64,10 +64,12 @@ async def process_document(
 
         prompt_version = request.prompt_version if request else "v1"
 
-        medical_data, token_usage, processing_time = (
-            bedrock_service.extract_medical_data(
-                document_text, prompt_version=prompt_version
-            )
+        (
+            medical_data,
+            token_usage,
+            processing_time,
+        ) = bedrock_service.extract_medical_data(
+            document_text, prompt_version=prompt_version
         )
 
         if not medical_data:
