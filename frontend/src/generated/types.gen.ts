@@ -113,6 +113,45 @@ export type HttpValidationError = {
  *
  * Extracted medical data structure
  */
+export type Diagnosis = {
+    condition: string;
+    icd_code?: string | null;
+    severity?: string | null;
+    date_diagnosed?: string | null;
+};
+
+export type Medication = {
+    name: string;
+    dosage?: string | null;
+    frequency?: string | null;
+    route?: string | null;
+    indication?: string | null;
+};
+
+export type LabValue = {
+    value: string;
+    reference_range?: string | null;
+    date?: string | null;
+    flag?: string | null;
+};
+
+export type Procedure = {
+    name: string;
+    date?: string | null;
+    outcome?: string | null;
+};
+
+export type Allergy = {
+    allergen: string;
+    reaction?: string | null;
+    severity?: string | null;
+};
+
+export type VitalSign = {
+    value: string;
+    date?: string | null;
+};
+
 export type MedicalData = {
     /**
      * Patient Name
@@ -131,41 +170,47 @@ export type MedicalData = {
      *
      * List of diagnoses
      */
-    diagnoses?: Array<string>;
+    diagnoses?: Array<Diagnosis | string>;
     /**
      * Medications
      *
      * List of medications
      */
-    medications?: Array<string>;
+    medications?: Array<Medication | string>;
     /**
      * Lab Values
      *
      * Lab test results
      */
     lab_values?: {
-        [key: string]: unknown;
+        [key: string]: LabValue | string | unknown;
     };
     /**
      * Procedures
      *
      * Medical procedures
      */
-    procedures?: Array<string>;
+    procedures?: Array<Procedure | string>;
     /**
      * Allergies
      *
      * Known allergies
      */
-    allergies?: Array<string>;
+    allergies?: Array<Allergy | string>;
     /**
      * Vital Signs
      *
      * Vital signs
      */
     vital_signs?: {
-        [key: string]: unknown;
+        [key: string]: VitalSign | string | unknown;
     };
+    /**
+     * Risk Factors
+     *
+     * Risk factors for underwriting
+     */
+    risk_factors?: Array<string>;
     /**
      * Notes
      *

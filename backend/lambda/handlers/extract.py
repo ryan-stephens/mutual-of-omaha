@@ -56,7 +56,7 @@ def handler(event, context):
         # Get document metadata from DynamoDB
         table = dynamodb_resource.Table(DYNAMODB_TABLE)
         response = table.get_item(Key={"document_id": document_id})
-        
+
         if "Item" not in response:
             return create_error_response(404, f"Document not found: {document_id}")
 
@@ -84,7 +84,7 @@ def handler(event, context):
             # Call Bedrock for extraction
             # Note: Using Claude 3 Haiku (not 3.5) as 3.5 requires inference profiles
             model_id = "anthropic.claude-3-haiku-20240307-v1:0"
-            
+
             # Use v2.0.0 prompt for comprehensive extraction
             prompt = f"""You are a specialized medical information extraction system designed for underwriting workflows. Your objective is to extract structured, normalized data from medical documents with maximum accuracy and completeness.
 
@@ -164,22 +164,16 @@ Return ONLY the JSON object. No markdown, no explanations, no additional comment
             bedrock_request = {
                 "anthropic_version": "bedrock-2023-05-31",
                 "max_tokens": 4000,  # Increased for comprehensive extraction
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ]
+                "messages": [{"role": "user", "content": prompt}],
             }
 
             bedrock_response = bedrock_runtime.invoke_model(
-                modelId=model_id,
-                body=json.dumps(bedrock_request)
+                modelId=model_id, body=json.dumps(bedrock_request)
             )
 
             response_body = json.loads(bedrock_response["body"].read())
             extracted_text = response_body["content"][0]["text"]
-            
+
             # Try to parse as JSON
             try:
                 medical_data = json.loads(extracted_text)
@@ -223,7 +217,7 @@ Return ONLY the JSON object. No markdown, no explanations, no additional comment
             )
 
             processing_time_ms = int((time.time() - start_time) * 1000)
-            
+
             # Save error to DynamoDB
             table.update_item(
                 Key={"document_id": document_id},

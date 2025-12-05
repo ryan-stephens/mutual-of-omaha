@@ -103,13 +103,14 @@ export const ResultsDisplay = ({ result }: ResultsDisplayProps) => {
                   </div>
                 );
               }
+              const labValue = value as { value?: string; reference_range?: string; flag?: string; date?: string };
               return (
                 <div key={key} className="border-l-2 border-purple-300 pl-3">
                   <div className="font-medium text-purple-900">{key}</div>
-                  {value.value && <div className="text-sm text-purple-800">Value: {value.value}</div>}
-                  {value.reference_range && <div className="text-sm text-purple-700">Range: {value.reference_range}</div>}
-                  {value.flag && <div className="text-sm text-purple-700">Flag: {value.flag}</div>}
-                  {value.date && <div className="text-sm text-purple-600">Date: {value.date}</div>}
+                  {labValue.value && <div className="text-sm text-purple-800">Value: {labValue.value}</div>}
+                  {labValue.reference_range && <div className="text-sm text-purple-700">Range: {labValue.reference_range}</div>}
+                  {labValue.flag && <div className="text-sm text-purple-700">Flag: {labValue.flag}</div>}
+                  {labValue.date && <div className="text-sm text-purple-600">Date: {labValue.date}</div>}
                 </div>
               );
             })}
@@ -131,11 +132,12 @@ export const ResultsDisplay = ({ result }: ResultsDisplayProps) => {
                   </div>
                 );
               }
+              const vitalSign = value as { value?: string; date?: string };
               return (
                 <div key={key}>
                   <span className="font-medium text-green-900">{key}:</span>{' '}
-                  <span className="text-green-800">{value.value}</span>
-                  {value.date && <span className="text-sm text-green-700 ml-2">({value.date})</span>}
+                  <span className="text-green-800">{vitalSign.value}</span>
+                  {vitalSign.date && <span className="text-sm text-green-700 ml-2">({vitalSign.date})</span>}
                 </div>
               );
             })}

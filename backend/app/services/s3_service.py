@@ -18,7 +18,7 @@ class S3Service:
     def __init__(self, skip_bucket_check=False):
         """
         Initialize S3 service
-        
+
         Args:
             skip_bucket_check: If True, skip bucket existence check (useful for Lambda)
         """

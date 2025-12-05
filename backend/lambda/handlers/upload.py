@@ -79,6 +79,7 @@ def handler(event, context):
 
         # Generate document ID and S3 key
         import uuid
+
         document_id = str(uuid.uuid4())
         timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
         s3_key = f"documents/{timestamp}_{document_id}_{filename}"
