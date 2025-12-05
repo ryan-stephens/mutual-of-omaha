@@ -7,6 +7,7 @@ import time
 from datetime import datetime
 import sys
 import os
+from pathlib import Path
 
 sys.path.insert(0, "/opt/python")
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -33,6 +34,109 @@ bedrock_runtime = boto3.client("bedrock-runtime", region_name="us-east-1")
 # Get environment variables
 S3_BUCKET = os.environ.get("S3_BUCKET")
 DYNAMODB_TABLE = os.environ.get("DYNAMODB_TABLE")
+
+
+def load_prompt(version: str) -> str:
+    """
+    Load prompt from file based on version
+
+    Args:
+        version: Prompt version (e.g., 'v1.0.0', 'v2.0.0')
+
+    Returns:
+        Prompt content as string
+    """
+    # Get the prompts directory relative to this file
+    handler_dir = Path(__file__).parent
+    prompts_dir = handler_dir.parent.parent / "prompts"
+    prompt_file = prompts_dir / f"{version}.txt"
+
+    logger.info(f"Loading prompt from: {prompt_file}")
+
+    if not prompt_file.exists():
+        logger.warning(f"Prompt file not found: {prompt_file}, falling back to v2.0.0")
+        prompt_file = prompts_dir / "v2.0.0.txt"
+
+    try:
+        with open(prompt_file, "r", encoding="utf-8") as f:
+            return f.read()
+    except Exception as e:
+        logger.error(f"Error loading prompt file: {e}")
+        # Return default v2.0.0 prompt as fallback
+        return """You are a specialized medical information extraction system designed for underwriting workflows. Your objective is to extract structured, normalized data from medical documents with maximum accuracy and completeness.
+
+Extract and structure the following information as JSON:
+
+{
+  "patient_name": "Full patient name",
+  "date_of_birth": "DOB in YYYY-MM-DD format",
+  "diagnoses": [
+    {
+      "condition": "Standardized diagnosis name",
+      "icd_code": "ICD-10 code if available",
+      "severity": "mild/moderate/severe if stated",
+      "date_diagnosed": "Date if available"
+    }
+  ],
+  "medications": [
+    {
+      "name": "Medication name (generic preferred)",
+      "dosage": "Strength and unit",
+      "frequency": "How often taken",
+      "route": "Administration route",
+      "indication": "Reason for medication if stated"
+    }
+  ],
+  "lab_values": {
+    "test_name": {
+      "value": "Result with units",
+      "reference_range": "Normal range if provided",
+      "date": "Test date if available",
+      "flag": "H/L/Normal"
+    }
+  },
+  "procedures": [
+    {
+      "name": "Procedure name",
+      "date": "When performed",
+      "outcome": "Result or status if mentioned"
+    }
+  ],
+  "allergies": [
+    {
+      "allergen": "Substance name",
+      "reaction": "Type of reaction",
+      "severity": "mild/moderate/severe/life-threatening"
+    }
+  ],
+  "vital_signs": {
+    "vital_name": {
+      "value": "Measurement with units",
+      "date": "When measured"
+    }
+  },
+  "risk_factors": ["Relevant risk factors for underwriting"],
+  "notes": "Additional clinically significant information"
+}
+
+Extraction Protocol:
+1. ACCURACY: Extract only explicitly stated information. Never infer or assume.
+2. NORMALIZATION: Standardize all medical terminology:
+   - T2DM → Type 2 Diabetes Mellitus
+   - HTN → Hypertension
+   - CAD → Coronary Artery Disease
+   - COPD → Chronic Obstructive Pulmonary Disease
+   - CHF → Congestive Heart Failure
+3. COMPLETENESS: Include all available details (dates, units, ranges, severity)
+4. STRUCTURE: Use nested objects for complex data
+5. CONSISTENCY: Maintain consistent formatting throughout
+6. VALIDATION: Ensure all numeric values include units
+7. RISK ASSESSMENT: Identify underwriting-relevant risk factors
+
+Medical Document:
+{document_content}
+
+Return ONLY the JSON object. No markdown, no explanations, no additional commentary."""
 
 
 def handler(event, context):
@@ -85,81 +189,12 @@ def handler(event, context):
             # Note: Using Claude 3 Haiku (not 3.5) as 3.5 requires inference profiles
             model_id = "anthropic.claude-3-haiku-20240307-v1:0"
 
-            # Use v2.0.0 prompt for comprehensive extraction
-            prompt = f"""You are a specialized medical information extraction system designed for underwriting workflows. Your objective is to extract structured, normalized data from medical documents with maximum accuracy and completeness.
+            # Load prompt template based on version
+            logger.info(f"Using prompt version: {prompt_version}")
+            prompt_template = load_prompt(prompt_version)
 
-Extract and structure the following information as JSON:
-
-{{
-  "patient_name": "Full patient name",
-  "date_of_birth": "DOB in YYYY-MM-DD format",
-  "diagnoses": [
-    {{
-      "condition": "Standardized diagnosis name",
-      "icd_code": "ICD-10 code if available",
-      "severity": "mild/moderate/severe if stated",
-      "date_diagnosed": "Date if available"
-    }}
-  ],
-  "medications": [
-    {{
-      "name": "Medication name (generic preferred)",
-      "dosage": "Strength and unit",
-      "frequency": "How often taken",
-      "route": "Administration route",
-      "indication": "Reason for medication if stated"
-    }}
-  ],
-  "lab_values": {{
-    "test_name": {{
-      "value": "Result with units",
-      "reference_range": "Normal range if provided",
-      "date": "Test date if available",
-      "flag": "H/L/Normal"
-    }}
-  }},
-  "procedures": [
-    {{
-      "name": "Procedure name",
-      "date": "When performed",
-      "outcome": "Result or status if mentioned"
-    }}
-  ],
-  "allergies": [
-    {{
-      "allergen": "Substance name",
-      "reaction": "Type of reaction",
-      "severity": "mild/moderate/severe/life-threatening"
-    }}
-  ],
-  "vital_signs": {{
-    "vital_name": {{
-      "value": "Measurement with units",
-      "date": "When measured"
-    }}
-  }},
-  "risk_factors": ["Relevant risk factors for underwriting"],
-  "notes": "Additional clinically significant information"
-}}
-
-Extraction Protocol:
-1. ACCURACY: Extract only explicitly stated information. Never infer or assume.
-2. NORMALIZATION: Standardize all medical terminology:
-   - T2DM → Type 2 Diabetes Mellitus
-   - HTN → Hypertension
-   - CAD → Coronary Artery Disease
-   - COPD → Chronic Obstructive Pulmonary Disease
-   - CHF → Congestive Heart Failure
-3. COMPLETENESS: Include all available details (dates, units, ranges, severity)
-4. STRUCTURE: Use nested objects for complex data
-5. CONSISTENCY: Maintain consistent formatting throughout
-6. VALIDATION: Ensure all numeric values include units
-7. RISK ASSESSMENT: Identify underwriting-relevant risk factors
-
-Medical Document:
-{document_content}
-
-Return ONLY the JSON object. No markdown, no explanations, no additional commentary."""
+            # Insert document content into prompt
+            prompt = prompt_template.replace("{document_content}", document_content)
 
             bedrock_request = {
                 "anthropic_version": "bedrock-2023-05-31",
