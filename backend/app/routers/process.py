@@ -5,6 +5,7 @@ Processing endpoint for medical data extraction
 import io
 import logging
 from datetime import datetime
+from typing import Optional
 
 import PyPDF2
 from fastapi import APIRouter, HTTPException
