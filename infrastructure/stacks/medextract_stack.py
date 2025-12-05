@@ -248,7 +248,6 @@ class MedExtractStack(Stack):
             "DYNAMODB_TABLE": self.results_table.table_name,
             "EXPERIMENTS_TABLE": self.experiments_table.table_name,
             "S3_BUCKET": self.document_bucket.bucket_name,
-            "AWS_REGION": self.region,
             "ENVIRONMENT": self.env_name,
         }
         

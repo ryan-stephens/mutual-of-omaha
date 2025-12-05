@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime
-from app.services.metrics_service import MetricsService, PromptMetrics, ExperimentResult
+from app.services.metrics_service import MetricsService
 from app.services.experiment_service import (
     ExperimentService,
     Experiment,

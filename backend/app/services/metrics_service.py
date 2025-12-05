@@ -6,9 +6,8 @@ Implements proper statistical testing for A/B experiments.
 """
 
 import boto3
-from typing import Dict, List, Optional, Any
+from typing import Dict, Optional, Any
 from datetime import datetime, timedelta
-from decimal import Decimal
 import logging
 from dataclasses import dataclass
 from enum import Enum
@@ -376,7 +375,10 @@ class MetricsService:
         # Generate recommendation
         if is_significant:
             if success_rate_delta > 0 and cost_delta_pct < 20:
-                recommendation = f"PROMOTE: {treatment_version} shows {success_rate_delta:.1f}% better success rate with acceptable cost increase"
+                recommendation = (
+                    f"PROMOTE: {treatment_version} shows {success_rate_delta:.1f}% "
+                    f"better success rate with acceptable cost increase"
+                )
             elif success_rate_delta > 0 and cost_delta_pct >= 20:
                 recommendation = f"REVIEW: {treatment_version} is better but {cost_delta_pct:.1f}% more expensive"
             else:

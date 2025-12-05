@@ -6,7 +6,6 @@ import boto3
 from botocore.exceptions import ClientError
 from app.config import settings
 import logging
-from typing import Optional
 import uuid
 from datetime import datetime
 

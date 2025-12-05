@@ -4,7 +4,7 @@ Prompts management endpoints for versioning and experimentation
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import List, Dict, Any
+from typing import List
 from app.services.prompt_manager import get_prompt_manager
 import logging
 

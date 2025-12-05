@@ -7,9 +7,8 @@ Manages experiment lifecycle: setup → run → analyze → promote/rollback.
 
 import boto3
 from typing import Dict, List, Optional
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-import json
 import logging
 from dataclasses import dataclass, asdict
 
@@ -93,7 +92,7 @@ class ExperimentService:
             self.table = self.dynamodb.Table(self.table_name)
             self.table.load()
             logger.info(f"Experiments table exists: {self.table_name}")
-        except:
+        except Exception:
             logger.info(f"Creating experiments table: {self.table_name}")
             self.table = self.dynamodb.create_table(
                 TableName=self.table_name,
@@ -285,7 +284,10 @@ class ExperimentService:
         try:
             self.table.update_item(
                 Key={"experiment_id": experiment_id},
-                UpdateExpression="SET #status = :status, ended_at = :ended_at, winner = :winner, conclusion = :conclusion",
+                UpdateExpression=(
+                    "SET #status = :status, ended_at = :ended_at, "
+                    "winner = :winner, conclusion = :conclusion"
+                ),
                 ExpressionAttributeNames={"#status": "status"},
                 ExpressionAttributeValues={
                     ":status": ExperimentStatus.COMPLETED.value,

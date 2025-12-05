@@ -111,7 +111,8 @@ class BedrockService:
             logger.error(f"Failed to load prompt version {version}: {e}")
             # Fallback to inline prompt if PromptManager fails
             logger.warning("Falling back to inline prompt")
-            return f"""You are a medical data extraction specialist. Extract structured information from the following medical document.
+            return f"""You are a medical data extraction specialist.
+Extract structured information from the following medical document.
 
 Extract in valid JSON format:
 {{

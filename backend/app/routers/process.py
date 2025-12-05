@@ -14,7 +14,6 @@ from app.models.schemas import (
     DocumentStatus,
     ExtractionResult,
     ProcessingRequest,
-    ProcessingResponse,
 )
 from app.services import BedrockService, DynamoDBService, S3Service
 
