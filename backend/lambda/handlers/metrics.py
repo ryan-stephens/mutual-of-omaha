@@ -75,7 +75,16 @@ def handler(event, context):
 
         if prompt_version:
             logger.info(f"Getting metrics for prompt version: {prompt_version}")
-            metrics = metrics_service.get_prompt_metrics(prompt_version, days=days)
+
+            # Calculate start_date from days parameter
+            from datetime import datetime, timedelta
+
+            end_date = datetime.utcnow()
+            start_date = end_date - timedelta(days=days)
+
+            metrics = metrics_service.get_prompt_metrics(
+                prompt_version, start_date=start_date, end_date=end_date
+            )
 
             if not metrics:
                 return create_error_response(
