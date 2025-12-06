@@ -209,6 +209,18 @@ class MedExtractStack(Stack):
         # DynamoDB permissions
         self.results_table.grant_read_write_data(role)
         self.experiments_table.grant_read_write_data(role)
+        
+        # Add Scan permission explicitly for metrics queries
+        role.add_to_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                actions=["dynamodb:Scan"],
+                resources=[
+                    self.results_table.table_arn,
+                    self.experiments_table.table_arn,
+                ],
+            )
+        )
 
         # Bedrock permissions (specific to Claude models)
         role.add_to_policy(
