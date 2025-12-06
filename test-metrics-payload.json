@@ -1,8 +1,0 @@
-{
-  "httpMethod": "GET",
-  "path": "/api/metrics/prompts/v2.0.0",
-  "pathParameters": {
-    "version": "v2.0.0"
-  },
-  "queryStringParameters": {}
-}
