@@ -439,6 +439,14 @@ class MedExtractStack(Stack):
             apigw.LambdaIntegration(self.lambda_functions["prompts"]),
         )
         
+        # /api/lambda/metrics
+        lambda_resource = api_root.add_resource("lambda")
+        lambda_metrics = lambda_resource.add_resource("metrics")
+        lambda_metrics.add_method(
+            "GET",
+            apigw.LambdaIntegration(self.lambda_functions["metrics"]),
+        )
+        
         # /api/experiments/*
         experiments_resource = api_root.add_resource("experiments")
         experiments_resource.add_method(

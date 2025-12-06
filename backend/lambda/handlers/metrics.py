@@ -28,6 +28,10 @@ def handler(event, context):
     - GET /api/metrics - Get all metrics (query param: prompt_version, days)
     - POST /api/metrics/compare - Compare two versions
     """
+    # Handle CORS preflight requests
+    if event.get("httpMethod") == "OPTIONS":
+        return create_response(200, {"message": "OK"})
+
     try:
         logger.info(f"Metrics request received: {event.get('httpMethod')} {event.get('path')}")
 
@@ -92,6 +96,42 @@ def handler(event, context):
             except Exception as e:
                 logger.error(f"Comparison failed: {str(e)}", exc_info=True)
                 return create_error_response(500, f"Comparison failed: {str(e)}")
+
+        # Handle GET /api/lambda/metrics - CloudWatch Lambda metrics
+        if event.get("httpMethod") == "GET" and "/lambda/metrics" in event.get("path", ""):
+            logger.info("Handling Lambda metrics request")
+            from app.services.cloudwatch_service import CloudWatchService
+
+            hours_str = get_query_parameter(event, "hours", "24")
+            try:
+                hours = int(hours_str)
+            except ValueError:
+                return create_error_response(400, "Invalid 'hours' parameter, must be integer")
+
+            try:
+                cloudwatch_service = CloudWatchService()
+                metrics = cloudwatch_service.get_lambda_metrics(hours=hours)
+
+                metrics_list = [
+                    {
+                        "function_name": m.function_name,
+                        "invocations": m.invocations,
+                        "errors": m.errors,
+                        "throttles": m.throttles,
+                        "avg_duration_ms": m.avg_duration_ms,
+                        "p99_duration_ms": m.p99_duration_ms,
+                        "cold_starts": m.cold_starts,
+                        "memory_used_mb": m.memory_used_mb,
+                        "memory_allocated_mb": m.memory_allocated_mb,
+                        "cost_usd": m.cost_usd,
+                    }
+                    for m in metrics
+                ]
+
+                return create_response(200, metrics_list)
+            except Exception as e:
+                logger.error(f"Failed to get Lambda metrics: {str(e)}", exc_info=True)
+                return create_error_response(500, f"Failed to get Lambda metrics: {str(e)}")
 
         # Extract version from path parameter if present
         path_params = event.get("pathParameters") or {}
