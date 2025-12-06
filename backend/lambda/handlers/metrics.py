@@ -82,11 +82,24 @@ def handler(event, context):
             end_date = datetime.utcnow()
             start_date = end_date - timedelta(days=days)
 
-            metrics = metrics_service.get_prompt_metrics(
-                prompt_version, start_date=start_date, end_date=end_date
-            )
+            logger.info(f"Querying metrics from {start_date} to {end_date}")
+
+            try:
+                metrics = metrics_service.get_prompt_metrics(
+                    prompt_version, start_date=start_date, end_date=end_date
+                )
+            except Exception as e:
+                logger.error(
+                    f"Exception in get_prompt_metrics: {str(e)}", exc_info=True
+                )
+                return create_error_response(
+                    500, f"Failed to retrieve metrics: {str(e)}"
+                )
 
             if not metrics:
+                logger.warning(
+                    f"No metrics returned for {prompt_version} in date range {start_date} to {end_date}"
+                )
                 return create_error_response(
                     404, f"No metrics found for prompt version: {prompt_version}"
                 )
