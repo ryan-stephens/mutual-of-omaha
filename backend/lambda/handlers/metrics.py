@@ -43,21 +43,61 @@ def handler(event, context):
 
             control_version = data.get("control_version")
             treatment_version = data.get("treatment_version")
+            confidence_level = data.get("confidence_level", 0.95)
 
             if not control_version or not treatment_version:
                 return create_error_response(
                     400, "Missing control_version or treatment_version"
                 )
 
-            # For now, return a message that this endpoint needs implementation
-            return create_response(
-                200,
-                {
-                    "message": "Comparison endpoint not yet implemented",
-                    "control_version": control_version,
-                    "treatment_version": treatment_version,
-                },
+            if control_version == treatment_version:
+                return create_error_response(
+                    400, "Control and treatment versions must be different"
+                )
+
+            logger.info(
+                f"Comparing {control_version} vs {treatment_version} at {confidence_level*100}% confidence"
             )
+
+            try:
+                result = metrics_service.compare_prompts(
+                    control_version=control_version,
+                    treatment_version=treatment_version,
+                    confidence_level=confidence_level,
+                )
+
+                if not result:
+                    return create_error_response(
+                        400, "Insufficient data for comparison"
+                    )
+
+                return create_response(
+                    200,
+                    {
+                        "control_version": result.control_version,
+                        "treatment_version": result.treatment_version,
+                        "control_n": result.control_n,
+                        "treatment_n": result.treatment_n,
+                        "control_success_rate": result.control_success_rate,
+                        "treatment_success_rate": result.treatment_success_rate,
+                        "success_rate_delta": result.success_rate_delta,
+                        "success_rate_p_value": result.success_rate_p_value,
+                        "control_avg_time": result.control_avg_time,
+                        "treatment_avg_time": result.treatment_avg_time,
+                        "time_delta_ms": result.time_delta_ms,
+                        "time_p_value": result.time_p_value,
+                        "control_avg_cost": result.control_avg_cost,
+                        "treatment_avg_cost": result.treatment_avg_cost,
+                        "cost_delta_usd": result.cost_delta_usd,
+                        "cost_delta_pct": result.cost_delta_pct,
+                        "is_significant": result.is_significant,
+                        "confidence_level": result.confidence_level,
+                        "recommendation": result.recommendation,
+                    },
+                )
+            except Exception as e:
+                logger.error(f"Comparison failed: {str(e)}", exc_info=True)
+                return create_error_response(500, f"Comparison failed: {str(e)}")
 
         # Extract version from path parameter if present
         path_params = event.get("pathParameters") or {}
