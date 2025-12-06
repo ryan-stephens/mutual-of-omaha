@@ -44,4 +44,4 @@ Write-Host "S3:                https://console.aws.amazon.com/s3/home?region=us-
 Write-Host "CloudWatch Logs:   https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups" -ForegroundColor White
 Write-Host ""
 Write-Host "Your API Gateway URL:" -ForegroundColor Yellow
-Write-Host "https://kya7rp5m26.execute-api.us-east-1.amazonaws.com/dev/" -ForegroundColor Cyan
+Write-Host 'https://kya7rp5m26.execute-api.us-east-1.amazonaws.com/dev/' -ForegroundColor Cyan
