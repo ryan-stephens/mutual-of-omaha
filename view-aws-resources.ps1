@@ -7,15 +7,15 @@ Write-Host ""
 
 # Lambda Functions
 Write-Host "📦 Lambda Functions:" -ForegroundColor Cyan
-aws lambda list-functions --query "Functions[?starts_with(FunctionName, 'medextract')].{Name:FunctionName, Runtime:Runtime, Memory:MemorySize, Timeout:Timeout}" --output table
+aws lambda list-functions --query 'Functions[?starts_with(FunctionName, `"medextract`")].{Name:FunctionName, Runtime:Runtime, Memory:MemorySize, Timeout:Timeout}' --output table
 
 Write-Host ""
 Write-Host "🌐 API Gateway:" -ForegroundColor Cyan
-aws apigateway get-rest-apis --query "items[?contains(name, 'MedExtract')].{Name:name, ID:id, Endpoint:id}" --output table
+aws apigateway get-rest-apis --query 'items[?contains(name, `"MedExtract`")].{Name:name, ID:id, Endpoint:id}' --output table
 
 Write-Host ""
 Write-Host "📊 DynamoDB Tables:" -ForegroundColor Cyan
-aws dynamodb list-tables --query "TableNames[?starts_with(@, 'medextract')]" --output table
+aws dynamodb list-tables --query 'TableNames[?starts_with(@, `"medextract`")]' --output table
 
 Write-Host ""
 Write-Host "🪣 S3 Buckets:" -ForegroundColor Cyan
