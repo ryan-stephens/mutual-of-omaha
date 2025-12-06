@@ -27,9 +27,10 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
 # Initialize AWS clients directly
-s3_client = boto3.client("s3")
-dynamodb_resource = boto3.resource("dynamodb")
-bedrock_runtime = boto3.client("bedrock-runtime", region_name="us-east-1")
+aws_region = os.environ.get("AWS_REGION", "us-east-1")
+s3_client = boto3.client("s3", region_name=aws_region)
+dynamodb_resource = boto3.resource("dynamodb", region_name=aws_region)
+bedrock_runtime = boto3.client("bedrock-runtime", region_name=aws_region)
 
 # Get environment variables
 S3_BUCKET = os.environ.get("S3_BUCKET")

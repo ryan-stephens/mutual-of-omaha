@@ -16,6 +16,10 @@ class Settings(BaseSettings):
     S3_BUCKET_NAME: str = "medextract-documents"
     DYNAMODB_TABLE_NAME: str = "medextract-results"
     BEDROCK_MODEL_ID: str = "anthropic.claude-3-haiku-20240307-v1:0"
+    LAMBDA_FUNCTION_NAMES: str = (
+        "medextract-upload-dev,medextract-extract-dev,medextract-metrics-dev,"
+        "medextract-experiment-dev,medextract-prompts-dev"
+    )
 
     APP_ENV: str = "development"
     LOG_LEVEL: str = "INFO"

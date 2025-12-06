@@ -35,8 +35,10 @@ class CloudWatchService:
     GB_SECOND_PRICE = 0.0000166667
 
     def __init__(self):
-        self.cloudwatch = boto3.client("cloudwatch", region_name="us-east-1")
-        self.logs = boto3.client("logs", region_name="us-east-1")
+        from app.config import settings
+
+        self.cloudwatch = boto3.client("cloudwatch", region_name=settings.AWS_REGION)
+        self.logs = boto3.client("logs", region_name=settings.AWS_REGION)
 
     def get_lambda_metrics(
         self, function_names: Optional[List[str]] = None, hours: int = 24
@@ -52,14 +54,10 @@ class CloudWatchService:
             List of LambdaMetric objects
         """
         if function_names is None:
-            # Default to medextract functions
-            function_names = [
-                "medextract-upload-dev",
-                "medextract-extract-dev",
-                "medextract-metrics-dev",
-                "medextract-experiment-dev",
-                "medextract-prompts-dev",
-            ]
+            from app.config import settings
+
+            # Get function names from config
+            function_names = [name.strip() for name in settings.LAMBDA_FUNCTION_NAMES.split(",")]
 
         end_time = datetime.utcnow()
         start_time = end_time - timedelta(hours=hours)

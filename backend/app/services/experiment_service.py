@@ -81,8 +81,12 @@ class ExperimentService:
     - Experiment history and audit trail
     """
 
-    def __init__(self, table_name: str = "medextract-experiments"):
-        self.dynamodb = boto3.resource("dynamodb")
+    def __init__(self, table_name: str = None):
+        from app.config import settings
+
+        if table_name is None:
+            table_name = os.environ.get("EXPERIMENTS_TABLE", "medextract-experiments")
+        self.dynamodb = boto3.resource("dynamodb", region_name=settings.AWS_REGION)
         self.table_name = table_name
         self._ensure_table_exists()
 
