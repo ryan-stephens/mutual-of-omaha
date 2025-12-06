@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import Dashboard from './pages/Dashboard';
+import Demo from './pages/Demo';
 
 function Navigation() {
   const location = useLocation();
@@ -38,6 +39,16 @@ function Navigation() {
               >
                 MLOps Dashboard
               </Link>
+              <Link
+                to="/demo"
+                className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                  isActive('/demo')
+                    ? 'border-blue-500 text-gray-900'
+                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                }`}
+              >
+                Demo
+              </Link>
             </div>
           </div>
         </div>
@@ -54,6 +65,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/demo" element={<Demo />} />
         </Routes>
       </div>
     </BrowserRouter>
