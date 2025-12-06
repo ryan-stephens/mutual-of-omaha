@@ -23,14 +23,47 @@ def handler(event, context):
     """
     Process metrics requests
 
-    Query parameters:
-    - prompt_version: Filter by prompt version
-    - days: Number of days to look back (default: 7)
+    Supports both:
+    - GET /api/metrics/prompts/{version} - Get metrics for specific version
+    - GET /api/metrics - Get all metrics (query param: prompt_version, days)
+    - POST /api/metrics/compare - Compare two versions
     """
     try:
-        logger.info("Metrics request received")
+        logger.info(
+            f"Metrics request received: {event.get('httpMethod')} {event.get('path')}"
+        )
 
-        prompt_version = get_query_parameter(event, "prompt_version")
+        # Handle POST /api/metrics/compare
+        if event.get("httpMethod") == "POST" and "compare" in event.get("path", ""):
+            logger.info("Handling comparison request")
+            body = event.get("body", "{}")
+            import json
+
+            data = json.loads(body) if isinstance(body, str) else body
+
+            control_version = data.get("control_version")
+            treatment_version = data.get("treatment_version")
+
+            if not control_version or not treatment_version:
+                return create_error_response(
+                    400, "Missing control_version or treatment_version"
+                )
+
+            # For now, return a message that this endpoint needs implementation
+            return create_response(
+                200,
+                {
+                    "message": "Comparison endpoint not yet implemented",
+                    "control_version": control_version,
+                    "treatment_version": treatment_version,
+                },
+            )
+
+        # Extract version from path parameter if present
+        path_params = event.get("pathParameters") or {}
+        prompt_version = path_params.get("version") or get_query_parameter(
+            event, "prompt_version"
+        )
         days_str = get_query_parameter(event, "days", "7")
 
         try:
