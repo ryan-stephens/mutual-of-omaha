@@ -13,9 +13,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
-def get_query_parameter(
-    event: Dict[str, Any], param_name: str, default: str = None
-) -> str:
+def get_query_parameter(event: Dict[str, Any], param_name: str, default: str = None) -> str:
     """Extract query parameter from API Gateway event"""
     query_params = event.get("queryStringParameters") or {}
     return query_params.get(param_name, default)
@@ -97,18 +95,14 @@ def handler(event, context):
     - GET /api/prompts/versions - List all available prompt versions
     """
     try:
-        logger.info(
-            f"Prompts request received: {event.get('httpMethod')} {event.get('path')}"
-        )
+        logger.info(f"Prompts request received: {event.get('httpMethod')} {event.get('path')}")
 
         # Handle GET /api/prompts/versions
         if event.get("httpMethod") == "GET":
             versions = list_prompt_versions()
             default_version = get_default_version(versions)
 
-            logger.info(
-                f"Returning {len(versions)} prompt versions, default: {default_version}"
-            )
+            logger.info(f"Returning {len(versions)} prompt versions, default: {default_version}")
 
             return create_response(
                 200,

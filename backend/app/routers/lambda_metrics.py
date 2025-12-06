@@ -16,6 +16,7 @@ cloudwatch_service = CloudWatchService()
 
 class LambdaMetricResponse(BaseModel):
     """Lambda function metric response"""
+
     function_name: str
     invocations: int
     errors: int

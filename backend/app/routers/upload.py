@@ -88,6 +88,4 @@ async def list_documents():
 
     except Exception as e:
         logger.error(f"Failed to list documents: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Failed to list documents: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to list documents: {str(e)}")

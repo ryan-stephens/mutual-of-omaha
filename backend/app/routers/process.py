@@ -26,9 +26,7 @@ bedrock_service = BedrockService()
 
 
 @router.post("/process/{document_id}", response_model=ExtractionResult)
-async def process_document(
-    document_id: str, request: Optional[ProcessingRequest] = None
-):
+async def process_document(document_id: str, request: Optional[ProcessingRequest] = None):
     """
     Process a document and extract medical data using Bedrock
 
@@ -43,9 +41,7 @@ async def process_document(
         metadata = dynamodb_service.get_result(document_id)
 
         if not metadata:
-            raise HTTPException(
-                status_code=404, detail=f"Document not found: {document_id}"
-            )
+            raise HTTPException(status_code=404, detail=f"Document not found: {document_id}")
 
         dynamodb_service.update_status(document_id, DocumentStatus.PROCESSING)
 
@@ -57,9 +53,7 @@ async def process_document(
 
         if not document_text or len(document_text.strip()) < 10:
             dynamodb_service.update_status(document_id, DocumentStatus.FAILED)
-            raise HTTPException(
-                status_code=400, detail="Could not extract text from document"
-            )
+            raise HTTPException(status_code=400, detail="Could not extract text from document")
 
         prompt_version = request.prompt_version if request else "v1"
 
@@ -67,15 +61,11 @@ async def process_document(
             medical_data,
             token_usage,
             processing_time,
-        ) = bedrock_service.extract_medical_data(
-            document_text, prompt_version=prompt_version
-        )
+        ) = bedrock_service.extract_medical_data(document_text, prompt_version=prompt_version)
 
         if not medical_data:
             dynamodb_service.update_status(document_id, DocumentStatus.FAILED)
-            raise HTTPException(
-                status_code=500, detail="Failed to parse extraction results"
-            )
+            raise HTTPException(status_code=500, detail="Failed to parse extraction results")
 
         result = ExtractionResult(
             document_id=document_id,

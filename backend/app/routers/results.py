@@ -29,9 +29,7 @@ async def get_results(document_id: str):
         result = dynamodb_service.get_result(document_id)
 
         if not result:
-            raise HTTPException(
-                status_code=404, detail=f"Document not found: {document_id}"
-            )
+            raise HTTPException(status_code=404, detail=f"Document not found: {document_id}")
 
         medical_data = None
         if "medical_data" in result and result["medical_data"]:
@@ -58,9 +56,7 @@ async def get_results(document_id: str):
         raise
     except Exception as e:
         logger.error(f"Failed to get results for {document_id}: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Failed to retrieve results: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve results: {str(e)}")
 
 
 @router.delete("/results/{document_id}")
@@ -78,9 +74,7 @@ async def delete_results(document_id: str):
         result = dynamodb_service.get_result(document_id)
 
         if not result:
-            raise HTTPException(
-                status_code=404, detail=f"Document not found: {document_id}"
-            )
+            raise HTTPException(status_code=404, detail=f"Document not found: {document_id}")
 
         success = dynamodb_service.delete_document(document_id)
 
@@ -93,6 +87,4 @@ async def delete_results(document_id: str):
         raise
     except Exception as e:
         logger.error(f"Failed to delete {document_id}: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Failed to delete document: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to delete document: {str(e)}")

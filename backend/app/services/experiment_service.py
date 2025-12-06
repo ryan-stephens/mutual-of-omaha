@@ -104,9 +104,7 @@ class ExperimentService:
                 GlobalSecondaryIndexes=[
                     {
                         "IndexName": "CreatedAtIndex",
-                        "KeySchema": [
-                            {"AttributeName": "created_at", "KeyType": "HASH"}
-                        ],
+                        "KeySchema": [{"AttributeName": "created_at", "KeyType": "HASH"}],
                         "Projection": {"ProjectionType": "ALL"},
                         "ProvisionedThroughput": {
                             "ReadCapacityUnits": 5,
@@ -150,7 +148,9 @@ class ExperimentService:
         Returns:
             Created Experiment object
         """
-        experiment_id = f"exp_{int(datetime.utcnow().timestamp())}_{control_version}_vs_{treatment_version}"
+        experiment_id = (
+            f"exp_{int(datetime.utcnow().timestamp())}_{control_version}_vs_{treatment_version}"
+        )
 
         experiment = Experiment(
             experiment_id=experiment_id,
@@ -223,9 +223,7 @@ class ExperimentService:
 
         # Increment counter
         field = (
-            "control_requests"
-            if version == experiment.control_version
-            else "treatment_requests"
+            "control_requests" if version == experiment.control_version else "treatment_requests"
         )
 
         self.table.update_item(
@@ -267,9 +265,7 @@ class ExperimentService:
             logger.error(f"Failed to list experiments: {e}")
             return []
 
-    def complete_experiment(
-        self, experiment_id: str, winner: str, conclusion: str
-    ) -> bool:
+    def complete_experiment(self, experiment_id: str, winner: str, conclusion: str) -> bool:
         """
         Mark experiment as completed with results
 
@@ -321,12 +317,8 @@ class ExperimentService:
         """Convert Experiment to DynamoDB item"""
         item = asdict(experiment)
         item["created_at"] = experiment.created_at.isoformat()
-        item["started_at"] = (
-            experiment.started_at.isoformat() if experiment.started_at else None
-        )
-        item["ended_at"] = (
-            experiment.ended_at.isoformat() if experiment.ended_at else None
-        )
+        item["started_at"] = experiment.started_at.isoformat() if experiment.started_at else None
+        item["ended_at"] = experiment.ended_at.isoformat() if experiment.ended_at else None
         item["status"] = experiment.status.value
         item["traffic_allocation"] = experiment.traffic_allocation.value
         return item
@@ -347,15 +339,9 @@ class ExperimentService:
             status=ExperimentStatus(item["status"]),
             created_at=datetime.fromisoformat(item["created_at"]),
             started_at=(
-                datetime.fromisoformat(item["started_at"])
-                if item.get("started_at")
-                else None
+                datetime.fromisoformat(item["started_at"]) if item.get("started_at") else None
             ),
-            ended_at=(
-                datetime.fromisoformat(item["ended_at"])
-                if item.get("ended_at")
-                else None
-            ),
+            ended_at=(datetime.fromisoformat(item["ended_at"]) if item.get("ended_at") else None),
             created_by=item["created_by"],
             control_requests=int(item.get("control_requests", 0)),
             treatment_requests=int(item.get("treatment_requests", 0)),

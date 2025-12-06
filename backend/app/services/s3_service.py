@@ -42,9 +42,7 @@ class S3Service:
                     else:
                         self.s3_client.create_bucket(
                             Bucket=self.bucket_name,
-                            CreateBucketConfiguration={
-                                "LocationConstraint": settings.AWS_REGION
-                            },
+                            CreateBucketConfiguration={"LocationConstraint": settings.AWS_REGION},
                         )
 
                     self.s3_client.put_bucket_versioning(
@@ -141,9 +139,7 @@ class S3Service:
             List of S3 object summaries
         """
         try:
-            response = self.s3_client.list_objects_v2(
-                Bucket=self.bucket_name, Prefix=prefix
-            )
+            response = self.s3_client.list_objects_v2(Bucket=self.bucket_name, Prefix=prefix)
             return response.get("Contents", [])
 
         except ClientError as e:

@@ -50,9 +50,7 @@ async def list_prompt_versions():
 
     except Exception as e:
         logger.error(f"Failed to list prompt versions: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Failed to retrieve prompt versions: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve prompt versions: {str(e)}")
 
 
 @router.get("/prompts/versions/{version}", response_model=PromptVersionInfo)
@@ -102,9 +100,7 @@ async def get_prompt_content(version: str):
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         logger.error(f"Failed to get prompt content: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Failed to retrieve prompt content: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve prompt content: {str(e)}")
 
 
 @router.post("/prompts/reload")
@@ -128,6 +124,4 @@ async def reload_prompts():
 
     except Exception as e:
         logger.error(f"Failed to reload prompts: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Failed to reload prompts: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to reload prompts: {str(e)}")

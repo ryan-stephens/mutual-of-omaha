@@ -97,9 +97,7 @@ class MedicalData(BaseModel):
 
     patient_name: Optional[str] = Field(None, description="Patient full name")
     date_of_birth: Optional[str] = Field(None, description="Patient DOB")
-    diagnoses: List[Diagnosis | str] = Field(
-        default_factory=list, description="List of diagnoses"
-    )
+    diagnoses: List[Diagnosis | str] = Field(default_factory=list, description="List of diagnoses")
     medications: List[Medication | str] = Field(
         default_factory=list, description="List of medications"
     )
@@ -109,9 +107,7 @@ class MedicalData(BaseModel):
     procedures: List[Procedure | str] = Field(
         default_factory=list, description="Medical procedures"
     )
-    allergies: List[Allergy | str] = Field(
-        default_factory=list, description="Known allergies"
-    )
+    allergies: List[Allergy | str] = Field(default_factory=list, description="Known allergies")
     vital_signs: Dict[str, VitalSign | str | Any] = Field(
         default_factory=dict, description="Vital signs"
     )

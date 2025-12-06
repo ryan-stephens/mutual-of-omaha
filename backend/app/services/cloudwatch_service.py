@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class LambdaMetric:
     """Lambda function metrics"""
+
     function_name: str
     invocations: int
     errors: int
@@ -38,9 +39,7 @@ class CloudWatchService:
         self.logs = boto3.client("logs", region_name="us-east-1")
 
     def get_lambda_metrics(
-        self, 
-        function_names: Optional[List[str]] = None,
-        hours: int = 24
+        self, function_names: Optional[List[str]] = None, hours: int = 24
     ) -> List[LambdaMetric]:
         """
         Get Lambda metrics for specified functions
@@ -78,37 +77,45 @@ class CloudWatchService:
         return metrics
 
     def _get_function_metrics(
-        self, 
-        function_name: str, 
-        start_time: datetime, 
-        end_time: datetime
+        self, function_name: str, start_time: datetime, end_time: datetime
     ) -> Optional[LambdaMetric]:
         """Get metrics for a single Lambda function"""
         try:
             # Get invocations
-            invocations = self._get_metric_statistic(
-                function_name, "Invocations", start_time, end_time, "Sum"
-            ) or 0
+            invocations = (
+                self._get_metric_statistic(
+                    function_name, "Invocations", start_time, end_time, "Sum"
+                )
+                or 0
+            )
 
             # Get errors
-            errors = self._get_metric_statistic(
-                function_name, "Errors", start_time, end_time, "Sum"
-            ) or 0
+            errors = (
+                self._get_metric_statistic(function_name, "Errors", start_time, end_time, "Sum")
+                or 0
+            )
 
             # Get throttles
-            throttles = self._get_metric_statistic(
-                function_name, "Throttles", start_time, end_time, "Sum"
-            ) or 0
+            throttles = (
+                self._get_metric_statistic(function_name, "Throttles", start_time, end_time, "Sum")
+                or 0
+            )
 
             # Get duration (average)
-            avg_duration = self._get_metric_statistic(
-                function_name, "Duration", start_time, end_time, "Average"
-            ) or 0
+            avg_duration = (
+                self._get_metric_statistic(
+                    function_name, "Duration", start_time, end_time, "Average"
+                )
+                or 0
+            )
 
             # Get duration (p99)
-            p99_duration = self._get_metric_statistic(
-                function_name, "Duration", start_time, end_time, "Maximum"
-            ) or 0
+            p99_duration = (
+                self._get_metric_statistic(
+                    function_name, "Duration", start_time, end_time, "Maximum"
+                )
+                or 0
+            )
 
             # Get concurrent executions (for cold start estimation)
             cold_starts = self._estimate_cold_starts(function_name, start_time, end_time)
@@ -167,18 +174,17 @@ class CloudWatchService:
             return None
 
     def _estimate_cold_starts(
-        self, 
-        function_name: str, 
-        start_time: datetime, 
-        end_time: datetime
+        self, function_name: str, start_time: datetime, end_time: datetime
     ) -> int:
         """Estimate cold starts from logs (simplified)"""
         try:
             log_group = f"/aws/lambda/{function_name}"
-            
+
             # Query for REPORT lines with Init Duration
-            query = 'fields @duration, @initDuration | stats count() as cold_starts by @initDuration'
-            
+            query = (
+                "fields @duration, @initDuration | stats count() as cold_starts by @initDuration"
+            )
+
             response = self.logs.start_query(
                 logGroupName=log_group,
                 startTime=int(start_time.timestamp()),
@@ -204,18 +210,15 @@ class CloudWatchService:
             return 128
 
     def _estimate_memory_used(
-        self, 
-        function_name: str, 
-        start_time: datetime, 
-        end_time: datetime
+        self, function_name: str, start_time: datetime, end_time: datetime
     ) -> float:
         """Estimate memory used from logs"""
         try:
             log_group = f"/aws/lambda/{function_name}"
-            
+
             # Query for Max Memory Used from REPORT lines
-            query = 'fields @maxMemoryUsed | stats max(@maxMemoryUsed) as max_memory'
-            
+            query = "fields @maxMemoryUsed | stats max(@maxMemoryUsed) as max_memory"
+
             response = self.logs.start_query(
                 logGroupName=log_group,
                 startTime=int(start_time.timestamp()),
@@ -234,12 +237,7 @@ class CloudWatchService:
             logger.debug(f"Could not estimate memory: {e}")
             return 256
 
-    def _calculate_cost(
-        self, 
-        invocations: int, 
-        avg_duration_ms: float, 
-        memory_mb: int
-    ) -> float:
+    def _calculate_cost(self, invocations: int, avg_duration_ms: float, memory_mb: int) -> float:
         """Calculate Lambda cost based on invocations and duration"""
         # Invocation cost
         invocation_cost = invocations * self.INVOCATION_PRICE

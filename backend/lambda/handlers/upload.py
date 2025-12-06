@@ -38,16 +38,12 @@ def handler(event, context):
     Expects multipart/form-data with base64 encoded file
     """
     try:
-        logger.info(
-            f"Upload request received: {event.get('requestContext', {}).get('requestId')}"
-        )
+        logger.info(f"Upload request received: {event.get('requestContext', {}).get('requestId')}")
 
         body = parse_event_body(event)
 
         if not body.get("file_content") or not body.get("filename"):
-            return create_error_response(
-                400, "Missing required fields: file_content and filename"
-            )
+            return create_error_response(400, "Missing required fields: file_content and filename")
 
         filename = body["filename"]
         file_content_b64 = body["file_content"]
@@ -71,9 +67,7 @@ def handler(event, context):
         max_size_mb = 10
 
         if file_size_mb > max_size_mb:
-            return create_error_response(
-                413, f"File too large. Maximum size: {max_size_mb}MB"
-            )
+            return create_error_response(413, f"File too large. Maximum size: {max_size_mb}MB")
 
         logger.info(f"Uploading file: {filename} ({file_size_mb:.2f}MB)")
 

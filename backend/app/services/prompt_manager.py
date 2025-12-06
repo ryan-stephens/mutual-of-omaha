@@ -59,8 +59,7 @@ class PromptManager:
         if version not in self._cache:
             available = ", ".join(self._cache.keys())
             raise ValueError(
-                f"Prompt version '{version}' not found. "
-                f"Available versions: {available}"
+                f"Prompt version '{version}' not found. " f"Available versions: {available}"
             )
 
         logger.info(f"Retrieved prompt version: {version}")
@@ -115,9 +114,7 @@ class PromptManager:
         template = self.get_prompt(version)
 
         if "{document_text}" not in template:
-            logger.warning(
-                f"Prompt version {version} missing {{document_text}} placeholder"
-            )
+            logger.warning(f"Prompt version {version} missing {{document_text}} placeholder")
             return template
 
         # Use replace() instead of format() to avoid issues with JSON curly braces

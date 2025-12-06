@@ -19,9 +19,7 @@ class BedrockService:
     """Service for interacting with AWS Bedrock"""
 
     def __init__(self):
-        self.bedrock_runtime = boto3.client(
-            "bedrock-runtime", region_name=settings.AWS_REGION
-        )
+        self.bedrock_runtime = boto3.client("bedrock-runtime", region_name=settings.AWS_REGION)
         self.model_id = settings.BEDROCK_MODEL_ID
 
     def extract_medical_data(
@@ -53,9 +51,7 @@ class BedrockService:
 
             logger.info(f"Invoking Bedrock model: {self.model_id}")
 
-            response = self.bedrock_runtime.invoke_model(
-                modelId=self.model_id, body=body
-            )
+            response = self.bedrock_runtime.invoke_model(modelId=self.model_id, body=body)
 
             response_body = json.loads(response["body"].read())
 

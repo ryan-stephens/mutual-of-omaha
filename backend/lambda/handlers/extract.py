@@ -208,7 +208,7 @@ def handler(event, context):
 
             response_body = json.loads(bedrock_response["body"].read())
             extracted_text = response_body["content"][0]["text"]
-            
+
             # Extract token usage for metrics
             token_usage = {
                 "input_tokens": response_body.get("usage", {}).get("input_tokens", 0),
@@ -273,9 +273,7 @@ def handler(event, context):
                 },
             )
 
-            return create_error_response(
-                500, f"Extraction failed: {str(extraction_error)}"
-            )
+            return create_error_response(500, f"Extraction failed: {str(extraction_error)}")
 
     except Exception as e:
         logger.error(f"Handler error: {e}", exc_info=True)

@@ -100,16 +100,10 @@ class CreateExperimentRequest(BaseModel):
     control_version: str = Field(..., description="Baseline prompt version")
     treatment_version: str = Field(..., description="New prompt version")
     traffic_allocation: TrafficAllocation = Field(TrafficAllocation.EQUAL_SPLIT)
-    target_sample_size: int = Field(
-        100, ge=30, description="Minimum samples per variant"
-    )
+    target_sample_size: int = Field(100, ge=30, description="Minimum samples per variant")
     max_duration_days: int = Field(30, ge=1, le=90)
-    min_success_rate_delta: float = Field(
-        5.0, ge=0, description="Minimum improvement (%)"
-    )
-    max_cost_increase_pct: float = Field(
-        20.0, ge=0, description="Maximum cost increase (%)"
-    )
+    min_success_rate_delta: float = Field(5.0, ge=0, description="Minimum improvement (%)")
+    max_cost_increase_pct: float = Field(20.0, ge=0, description="Maximum cost increase (%)")
 
 
 class ExperimentResponse(BaseModel):
@@ -206,9 +200,7 @@ async def compare_prompt_versions(request: ComparisonRequest):
         )
 
         if not result:
-            raise HTTPException(
-                status_code=400, detail="Insufficient data for comparison"
-            )
+            raise HTTPException(status_code=400, detail="Insufficient data for comparison")
 
         return ComparisonResponse(
             control_version=result.control_version,

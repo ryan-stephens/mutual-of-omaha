@@ -29,9 +29,7 @@ def handler(event, context):
     - POST /api/metrics/compare - Compare two versions
     """
     try:
-        logger.info(
-            f"Metrics request received: {event.get('httpMethod')} {event.get('path')}"
-        )
+        logger.info(f"Metrics request received: {event.get('httpMethod')} {event.get('path')}")
 
         # Handle POST /api/metrics/compare
         if event.get("httpMethod") == "POST" and "compare" in event.get("path", ""):
@@ -46,9 +44,7 @@ def handler(event, context):
             confidence_level = data.get("confidence_level", 0.95)
 
             if not control_version or not treatment_version:
-                return create_error_response(
-                    400, "Missing control_version or treatment_version"
-                )
+                return create_error_response(400, "Missing control_version or treatment_version")
 
             if control_version == treatment_version:
                 return create_error_response(
@@ -67,9 +63,7 @@ def handler(event, context):
                 )
 
                 if not result:
-                    return create_error_response(
-                        400, "Insufficient data for comparison"
-                    )
+                    return create_error_response(400, "Insufficient data for comparison")
 
                 return create_response(
                     200,
@@ -101,17 +95,13 @@ def handler(event, context):
 
         # Extract version from path parameter if present
         path_params = event.get("pathParameters") or {}
-        prompt_version = path_params.get("version") or get_query_parameter(
-            event, "prompt_version"
-        )
+        prompt_version = path_params.get("version") or get_query_parameter(event, "prompt_version")
         days_str = get_query_parameter(event, "days", "7")
 
         try:
             days = int(days_str)
         except ValueError:
-            return create_error_response(
-                400, "Invalid 'days' parameter, must be integer"
-            )
+            return create_error_response(400, "Invalid 'days' parameter, must be integer")
 
         if prompt_version:
             logger.info(f"Getting metrics for prompt version: {prompt_version}")
@@ -129,12 +119,8 @@ def handler(event, context):
                     prompt_version, start_date=start_date, end_date=end_date
                 )
             except Exception as e:
-                logger.error(
-                    f"Exception in get_prompt_metrics: {str(e)}", exc_info=True
-                )
-                return create_error_response(
-                    500, f"Failed to retrieve metrics: {str(e)}"
-                )
+                logger.error(f"Exception in get_prompt_metrics: {str(e)}", exc_info=True)
+                return create_error_response(500, f"Failed to retrieve metrics: {str(e)}")
 
             if not metrics:
                 logger.warning(
@@ -163,14 +149,10 @@ def handler(event, context):
                     "avg_field_completeness": metrics.avg_field_completeness,
                     "avg_fields_extracted": metrics.avg_fields_extracted,
                     "first_request": (
-                        metrics.first_request.isoformat()
-                        if metrics.first_request
-                        else None
+                        metrics.first_request.isoformat() if metrics.first_request else None
                     ),
                     "last_request": (
-                        metrics.last_request.isoformat()
-                        if metrics.last_request
-                        else None
+                        metrics.last_request.isoformat() if metrics.last_request else None
                     ),
                 },
             )

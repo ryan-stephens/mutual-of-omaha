@@ -131,9 +131,7 @@ class MetricsService:
         output_cost = output_tokens * self.OUTPUT_TOKEN_PRICE
         return round(input_cost + output_cost, 6)
 
-    def calculate_field_completeness(
-        self, medical_data: Dict[str, Any]
-    ) -> tuple[float, int]:
+    def calculate_field_completeness(self, medical_data: Dict[str, Any]) -> tuple[float, int]:
         """
         Calculate how complete the extraction is (% of fields populated)
 
@@ -146,7 +144,9 @@ class MetricsService:
         if not medical_data:
             return 0.0, 0
 
-        total_fields = 9  # patient_name, dob, diagnoses, meds, labs, procedures, allergies, vitals, notes
+        total_fields = (
+            9  # patient_name, dob, diagnoses, meds, labs, procedures, allergies, vitals, notes
+        )
         populated_fields = 0
 
         # Count non-empty fields
@@ -212,9 +212,7 @@ class MetricsService:
             for item in items:
                 extracted_at = item.get("extracted_at")
                 if extracted_at:
-                    item_date = datetime.fromisoformat(
-                        extracted_at.replace("Z", "+00:00")
-                    )
+                    item_date = datetime.fromisoformat(extracted_at.replace("Z", "+00:00"))
                     if start_date <= item_date <= end_date:
                         filtered_items.append(item)
 
@@ -223,9 +221,7 @@ class MetricsService:
                 return None
 
             # Calculate metrics
-            successful = [
-                item for item in filtered_items if item.get("status") == "completed"
-            ]
+            successful = [item for item in filtered_items if item.get("status") == "completed"]
             failed = [item for item in filtered_items if item.get("status") == "failed"]
 
             processing_times = [
@@ -248,16 +244,12 @@ class MetricsService:
             fields_extracted = []
             for item in successful:
                 if "medical_data" in item:
-                    completeness, fields = self.calculate_field_completeness(
-                        item["medical_data"]
-                    )
+                    completeness, fields = self.calculate_field_completeness(item["medical_data"])
                     completeness_scores.append(completeness)
                     fields_extracted.append(fields)
 
             # Calculate percentiles
-            processing_times_sorted = (
-                sorted(processing_times) if processing_times else [0]
-            )
+            processing_times_sorted = sorted(processing_times) if processing_times else [0]
             p50_idx = int(len(processing_times_sorted) * 0.50)
             p95_idx = int(len(processing_times_sorted) * 0.95)
             p99_idx = int(len(processing_times_sorted) * 0.99)
@@ -281,9 +273,7 @@ class MetricsService:
                 failed_requests=len(failed),
                 success_rate=round(len(successful) / len(filtered_items) * 100, 2),
                 avg_processing_time_ms=(
-                    round(statistics.mean(processing_times), 2)
-                    if processing_times
-                    else 0
+                    round(statistics.mean(processing_times), 2) if processing_times else 0
                 ),
                 p50_processing_time_ms=(
                     processing_times_sorted[p50_idx] if processing_times_sorted else 0
@@ -297,18 +287,12 @@ class MetricsService:
                 total_input_tokens=total_input,
                 total_output_tokens=total_output,
                 total_cost_usd=round(total_cost, 4),
-                avg_cost_per_request=(
-                    round(total_cost / len(successful), 6) if successful else 0
-                ),
+                avg_cost_per_request=(round(total_cost / len(successful), 6) if successful else 0),
                 avg_field_completeness=(
-                    round(statistics.mean(completeness_scores), 2)
-                    if completeness_scores
-                    else 0
+                    round(statistics.mean(completeness_scores), 2) if completeness_scores else 0
                 ),
                 avg_fields_extracted=(
-                    round(statistics.mean(fields_extracted), 2)
-                    if fields_extracted
-                    else 0
+                    round(statistics.mean(fields_extracted), 2) if fields_extracted else 0
                 ),
                 first_request=min(dates) if dates else datetime.utcnow(),
                 last_request=max(dates) if dates else datetime.utcnow(),
@@ -346,21 +330,15 @@ class MetricsService:
         # For now, simplified version
 
         # Success rate delta
-        success_rate_delta = (
-            treatment_metrics.success_rate - control_metrics.success_rate
-        )
+        success_rate_delta = treatment_metrics.success_rate - control_metrics.success_rate
 
         # Processing time delta
         time_delta = (
-            treatment_metrics.avg_processing_time_ms
-            - control_metrics.avg_processing_time_ms
+            treatment_metrics.avg_processing_time_ms - control_metrics.avg_processing_time_ms
         )
 
         # Cost delta
-        cost_delta = (
-            treatment_metrics.avg_cost_per_request
-            - control_metrics.avg_cost_per_request
-        )
+        cost_delta = treatment_metrics.avg_cost_per_request - control_metrics.avg_cost_per_request
         cost_delta_pct = (
             (cost_delta / control_metrics.avg_cost_per_request * 100)
             if control_metrics.avg_cost_per_request > 0

@@ -44,9 +44,7 @@ def handler(event, context):
                 experiment = experiment_service.get_experiment(experiment_id)
 
                 if not experiment:
-                    return create_error_response(
-                        404, f"Experiment not found: {experiment_id}"
-                    )
+                    return create_error_response(404, f"Experiment not found: {experiment_id}")
 
                 return create_response(
                     200,
@@ -99,9 +97,7 @@ def handler(event, context):
             ]
             for field in required_fields:
                 if field not in body:
-                    return create_error_response(
-                        400, f"Missing required field: {field}"
-                    )
+                    return create_error_response(400, f"Missing required field: {field}")
 
             logger.info(f"Creating experiment: {body['name']}")
 
@@ -147,9 +143,7 @@ def handler(event, context):
                 if not winner:
                     return create_error_response(400, "Missing 'winner' field")
 
-                success = experiment_service.complete_experiment(
-                    experiment_id, winner, conclusion
-                )
+                success = experiment_service.complete_experiment(experiment_id, winner, conclusion)
 
                 if success:
                     return create_response(200, {"message": "Experiment completed"})
@@ -164,6 +158,4 @@ def handler(event, context):
 
     except Exception as e:
         logger.error(f"Experiment handler error: {e}", exc_info=True)
-        return create_error_response(
-            500, f"Failed to process experiment request: {str(e)}"
-        )
+        return create_error_response(500, f"Failed to process experiment request: {str(e)}")

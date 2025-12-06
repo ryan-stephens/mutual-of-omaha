@@ -51,9 +51,7 @@ class DynamoDBService:
                 GlobalSecondaryIndexes=[
                     {
                         "IndexName": "UploadedAtIndex",
-                        "KeySchema": [
-                            {"AttributeName": "uploaded_at", "KeyType": "HASH"}
-                        ],
+                        "KeySchema": [{"AttributeName": "uploaded_at", "KeyType": "HASH"}],
                         "Projection": {"ProjectionType": "ALL"},
                         "ProvisionedThroughput": {
                             "ReadCapacityUnits": 5,
