@@ -103,17 +103,6 @@ export interface PromptVersionsResponse {
 export const getPromptVersions = async (): Promise<PromptVersionsResponse> => {
   const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
   
-  // Skip API call if using Lambda (endpoint not deployed yet)
-  // Check if URL contains amazonaws (Lambda API Gateway)
-  if (apiUrl.indexOf('amazonaws') !== -1) {
-    console.log('🔧 Using Lambda - returning static prompt versions');
-    return {
-      versions: ['v1.0.0', 'v1.1.0', 'v2.0.0', 'v2.1.0'],
-      default_version: 'v2.1.0',
-      total_count: 4,
-    };
-  }
-  
   try {
     const response = await fetch(`${apiUrl}/api/prompts/versions`);
     

@@ -338,6 +338,22 @@ class MedExtractStack(Stack):
             log_retention=logs.RetentionDays.ONE_WEEK if self.env_name == "dev" else logs.RetentionDays.ONE_MONTH,
         )
         
+        # 5. Prompts Handler - List available prompt versions
+        functions["prompts"] = lambda_.Function(
+            self,
+            "PromptsFunction",
+            function_name=f"medextract-prompts-{self.env_name}",
+            runtime=lambda_.Runtime.PYTHON_3_11,
+            handler="lambda.handlers.prompts.handler",
+            code=lambda_.Code.from_asset("../backend", bundling=bundling_config),
+            role=self.lambda_role,
+            environment=common_env,
+            memory_size=256,  # Minimal memory for listing files
+            timeout=Duration.seconds(30),
+            tracing=lambda_.Tracing.ACTIVE,
+            log_retention=logs.RetentionDays.ONE_WEEK if self.env_name == "dev" else logs.RetentionDays.ONE_MONTH,
+        )
+        
         # Grant permissions to all functions
         for func in functions.values():
             self.document_bucket.grant_read_write(func)
@@ -413,6 +429,14 @@ class MedExtractStack(Stack):
         metrics_compare.add_method(
             "POST",
             apigw.LambdaIntegration(self.lambda_functions["metrics"]),
+        )
+        
+        # /api/prompts/versions
+        prompts_resource = api_root.add_resource("prompts")
+        prompts_versions = prompts_resource.add_resource("versions")
+        prompts_versions.add_method(
+            "GET",
+            apigw.LambdaIntegration(self.lambda_functions["prompts"]),
         )
         
         # /api/experiments/*
