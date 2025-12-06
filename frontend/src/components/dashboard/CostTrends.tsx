@@ -107,31 +107,48 @@ export default function CostTrends({ promptVersion }: Props) {
   ];
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Cost Summary Cards */}
-      <div className="lg:col-span-1 space-y-4">
+    <div className="space-y-6">
+      {/* Key Metrics Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-lg shadow p-6">
-          <h4 className="text-sm font-medium text-gray-600 mb-2">Total Spend (7 Days)</h4>
+          <h4 className="text-sm font-medium text-gray-600 mb-2">Total Spend</h4>
           <p className="text-3xl font-bold text-purple-600">${totalCost.toFixed(4)}</p>
-          <p className="text-xs text-gray-500 mt-1">{totalRequests} requests</p>
+          <p className="text-xs text-gray-500 mt-1">All time</p>
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
-          <h4 className="text-sm font-medium text-gray-600 mb-2">Avg Cost per Request</h4>
-          <p className="text-3xl font-bold text-blue-600">${avgCostPerRequest.toFixed(6)}</p>
-          <p className="text-xs text-gray-500 mt-1">
-            ${(avgCostPerRequest * 1000).toFixed(4)} per 1K
-          </p>
+          <h4 className="text-sm font-medium text-gray-600 mb-2">Total Requests</h4>
+          <p className="text-3xl font-bold text-blue-600">{totalRequests.toLocaleString()}</p>
+          <p className="text-xs text-gray-500 mt-1">All time</p>
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
-          <h4 className="text-sm font-medium text-gray-600 mb-4">Cost Breakdown</h4>
-          <div className="space-y-3">
+          <h4 className="text-sm font-medium text-gray-600 mb-2">Avg Cost/Request</h4>
+          <p className="text-3xl font-bold text-green-600">${avgCostPerRequest.toFixed(6)}</p>
+          <p className="text-xs text-gray-500 mt-1">${(avgCostPerRequest * 1000).toFixed(4)}/1K</p>
+        </div>
+
+        <div className="bg-white rounded-lg shadow p-6">
+          <h4 className="text-sm font-medium text-gray-600 mb-2">Token Cost Ratio</h4>
+          <p className="text-3xl font-bold text-orange-600">{((outputTokenCost / inputTokenCost) * 100).toFixed(0)}%</p>
+          <p className="text-xs text-gray-500 mt-1">Output vs Input</p>
+        </div>
+      </div>
+
+      {/* Cost Breakdown */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-lg shadow p-6">
+          <h4 className="text-md font-semibold text-gray-900 mb-4">Cost Breakdown by Token Type</h4>
+          <div className="space-y-4">
             {costBreakdown.map(item => (
               <div key={item.component}>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-gray-600">{item.component}</span>
-                  <span className="font-semibold">{item.percentage.toFixed(0)}%</span>
+                <div className="flex justify-between text-sm mb-2">
+                  <span className="text-gray-600 font-medium">{item.component}</span>
+                  <span className="font-semibold text-gray-900">${item.cost.toFixed(4)}</span>
+                </div>
+                <div className="flex justify-between text-xs text-gray-500 mb-2">
+                  <span>{item.tokens.toLocaleString()} tokens</span>
+                  <span>{item.percentage.toFixed(1)}% of total</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div 
@@ -139,44 +156,13 @@ export default function CostTrends({ promptVersion }: Props) {
                     style={{ width: `${item.percentage}%` }}
                   ></div>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">${item.cost.toFixed(6)} avg</p>
               </div>
             ))}
           </div>
         </div>
-      </div>
-
-      {/* Cost Summary Grid */}
-      <div className="lg:col-span-2 space-y-6">
-        {/* Key Metrics */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h4 className="text-md font-semibold text-gray-900 mb-4">Cost Summary</h4>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="border-l-4 border-purple-500 pl-4">
-              <p className="text-sm text-gray-600">Total Requests</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{totalRequests.toLocaleString()}</p>
-              <p className="text-xs text-gray-500 mt-1">All time</p>
-            </div>
-            <div className="border-l-4 border-blue-500 pl-4">
-              <p className="text-sm text-gray-600">Avg Cost/Request</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">${avgCostPerRequest.toFixed(6)}</p>
-              <p className="text-xs text-gray-500 mt-1">${(avgCostPerRequest * 1000).toFixed(4)}/1K</p>
-            </div>
-            <div className="border-l-4 border-green-500 pl-4">
-              <p className="text-sm text-gray-600">Input Tokens</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{metrics.total_input_tokens.toLocaleString()}</p>
-              <p className="text-xs text-gray-500 mt-1">${inputTokenCost.toFixed(4)}</p>
-            </div>
-            <div className="border-l-4 border-orange-500 pl-4">
-              <p className="text-sm text-gray-600">Output Tokens</p>
-              <p className="text-2xl font-bold text-gray-900 mt-1">{metrics.total_output_tokens.toLocaleString()}</p>
-              <p className="text-xs text-gray-500 mt-1">${outputTokenCost.toFixed(4)}</p>
-            </div>
-          </div>
-        </div>
 
         {/* Cost Projections */}
-        <div className="bg-white rounded-lg shadow p-6 mt-6">
+        <div className="bg-white rounded-lg shadow p-6">
           <h4 className="text-md font-semibold text-gray-900 mb-4">Monthly Projection</h4>
           <div className="grid grid-cols-3 gap-4">
             <div className="bg-blue-50 rounded-lg p-4">
