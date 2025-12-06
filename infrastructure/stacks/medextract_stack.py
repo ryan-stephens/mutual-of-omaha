@@ -402,25 +402,6 @@ class MedExtractStack(Stack):
             "POST",
             apigw.LambdaIntegration(self.lambda_functions["metrics"]),
         )
-        metrics_compare.add_method("OPTIONS", apigw.MockIntegration(
-            integration_responses=[{
-                "statusCode": "200",
-                "responseParameters": {
-                    "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
-                    "method.response.header.Access-Control-Allow-Origin": "'*'",
-                    "method.response.header.Access-Control-Allow-Methods": "'POST,OPTIONS'"
-                }
-            }],
-            passthrough_behavior=apigw.PassthroughBehavior.NEVER,
-            request_templates={"application/json": '{"statusCode": 200}'}
-        ), method_responses=[{
-            "statusCode": "200",
-            "responseParameters": {
-                "method.response.header.Access-Control-Allow-Headers": True,
-                "method.response.header.Access-Control-Allow-Origin": True,
-                "method.response.header.Access-Control-Allow-Methods": True
-            }
-        }])
         
         # /api/experiments/*
         experiments_resource = api_root.add_resource("experiments")
