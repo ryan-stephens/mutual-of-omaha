@@ -3,7 +3,7 @@ Lambda metrics endpoints for monitoring serverless performance
 """
 
 from fastapi import APIRouter, HTTPException, Query
-from typing import List, Optional
+from typing import List
 from pydantic import BaseModel
 from app.services.cloudwatch_service import CloudWatchService
 import logging

@@ -6,6 +6,7 @@ Manages experiment lifecycle: setup → run → analyze → promote/rollback.
 """
 
 import boto3
+import os
 from typing import Dict, List, Optional
 from datetime import datetime
 from enum import Enum

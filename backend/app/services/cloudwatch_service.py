@@ -4,7 +4,7 @@ CloudWatch service for Lambda metrics monitoring
 
 import boto3
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+from typing import List, Optional
 import logging
 from dataclasses import dataclass
 
@@ -217,7 +217,7 @@ class CloudWatchService:
             # Query for Max Memory Used from REPORT lines
             query = "fields @maxMemoryUsed | stats max(@maxMemoryUsed) as max_memory"
 
-            response = self.logs.start_query(
+            self.logs.start_query(
                 logGroupName=log_group,
                 startTime=int(start_time.timestamp()),
                 endTime=int(end_time.timestamp()),
