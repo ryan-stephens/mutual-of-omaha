@@ -13,15 +13,14 @@ function Navigation() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link to="/" className="flex items-center gap-3">
+            <Link to="/" className="flex items-center gap-4">
               <img 
                 src="/logo-standard-black.7df8d63.svg" 
                 alt="Mutual of Omaha" 
-                className="h-10 w-auto"
+                className="h-14 w-auto"
               />
               <div className="hidden sm:block">
                 <h1 className="text-lg font-bold text-gray-900">MedExtract</h1>
-                <p className="text-xs text-gray-500">Medical Intelligence</p>
               </div>
             </Link>
             <div className="hidden sm:ml-8 sm:flex sm:space-x-8">
