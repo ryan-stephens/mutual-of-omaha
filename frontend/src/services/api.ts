@@ -108,9 +108,9 @@ export const getPromptVersions = async (): Promise<PromptVersionsResponse> => {
   if (apiUrl.indexOf('amazonaws') !== -1) {
     console.log('🔧 Using Lambda - returning static prompt versions');
     return {
-      versions: ['v1.0.0', 'v1.1.0', 'v2.0.0'],
-      default_version: 'v2.0.0',
-      total_count: 3,
+      versions: ['v1.0.0', 'v1.1.0', 'v2.0.0', 'v2.1.0'],
+      default_version: 'v2.1.0',
+      total_count: 4,
     };
   }
   
@@ -126,9 +126,9 @@ export const getPromptVersions = async (): Promise<PromptVersionsResponse> => {
     console.error('Error fetching prompt versions:', error);
     // Fallback to hardcoded versions if API fails
     return {
-      versions: ['v1.0.0', 'v1.1.0', 'v2.0.0'],
-      default_version: 'v2.0.0',
-      total_count: 3,
+      versions: ['v1.0.0', 'v1.1.0', 'v2.0.0', 'v2.1.0'],
+      default_version: 'v2.1.0',
+      total_count: 4,
     };
   }
 };
