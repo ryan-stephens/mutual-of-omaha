@@ -12,11 +12,17 @@ function Navigation() {
     <nav className="bg-white shadow-sm border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
-          <div className="flex">
-            <Link to="/" className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">
-                MedExtract 🏥
-              </h1>
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center gap-3">
+              <img 
+                src="/mutual-of-omaha-logo.svg" 
+                alt="Mutual of Omaha" 
+                className="h-12 w-auto"
+              />
+              <div className="hidden sm:block">
+                <h1 className="text-lg font-bold text-gray-900">MedExtract</h1>
+                <p className="text-xs text-gray-500">Medical Intelligence</p>
+              </div>
             </Link>
             <div className="hidden sm:ml-8 sm:flex sm:space-x-8">
               <Link
