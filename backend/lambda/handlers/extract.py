@@ -208,6 +208,12 @@ def handler(event, context):
 
             response_body = json.loads(bedrock_response["body"].read())
             extracted_text = response_body["content"][0]["text"]
+            
+            # Extract token usage for metrics
+            token_usage = {
+                "input_tokens": response_body.get("usage", {}).get("input_tokens", 0),
+                "output_tokens": response_body.get("usage", {}).get("output_tokens", 0),
+            }
 
             # Try to parse as JSON
             try:
@@ -220,7 +226,7 @@ def handler(event, context):
             # Save results to DynamoDB
             table.update_item(
                 Key={"document_id": document_id},
-                UpdateExpression="SET medical_data = :data, #status = :status, model_id = :model, prompt_version = :version, processing_time_ms = :time, extracted_at = :timestamp",
+                UpdateExpression="SET medical_data = :data, #status = :status, model_id = :model, prompt_version = :version, processing_time_ms = :time, extracted_at = :timestamp, token_usage = :tokens",
                 ExpressionAttributeNames={"#status": "status"},
                 ExpressionAttributeValues={
                     ":data": medical_data,
@@ -229,6 +235,7 @@ def handler(event, context):
                     ":version": prompt_version,
                     ":time": processing_time_ms,
                     ":timestamp": datetime.utcnow().isoformat(),
+                    ":tokens": token_usage,
                 },
             )
 
@@ -241,6 +248,7 @@ def handler(event, context):
                     "processing_time_ms": processing_time_ms,
                     "model_id": model_id,
                     "prompt_version": prompt_version,
+                    "token_usage": token_usage,
                     "extracted_at": datetime.utcnow().isoformat(),
                 },
             )

@@ -12,6 +12,7 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 import statistics
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -109,7 +110,9 @@ class MetricsService:
     INPUT_TOKEN_PRICE = 0.00025 / 1000  # $0.25 per 1M tokens
     OUTPUT_TOKEN_PRICE = 0.00125 / 1000  # $1.25 per 1M tokens
 
-    def __init__(self, dynamodb_table_name: str = "medextract-results"):
+    def __init__(self, dynamodb_table_name: str = None):
+        if dynamodb_table_name is None:
+            dynamodb_table_name = os.environ.get("DYNAMODB_TABLE", "medextract-results")
         self.dynamodb = boto3.resource("dynamodb")
         self.table = self.dynamodb.Table(dynamodb_table_name)
 

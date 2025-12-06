@@ -39,10 +39,15 @@ export default function MetricsOverview({ promptVersion }: Props) {
       try {
         const res = await fetch(`${config.apiBaseUrl}/api/metrics/prompts/${promptVersion}`);
         if (!res.ok) {
-          throw new Error('No metrics data available for this version');
+          if (res.status === 404) {
+            setMetrics(null);
+          } else {
+            throw new Error(`Failed to fetch metrics: ${res.statusText}`);
+          }
+        } else {
+          const data = await res.json();
+          setMetrics(data);
         }
-        const data = await res.json();
-        setMetrics(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch metrics');
       } finally {
