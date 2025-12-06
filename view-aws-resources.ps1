@@ -7,15 +7,18 @@ Write-Host ""
 
 # Lambda Functions
 Write-Host "📦 Lambda Functions:" -ForegroundColor Cyan
-aws lambda list-functions --query 'Functions[?starts_with(FunctionName, `"medextract`")].{Name:FunctionName, Runtime:Runtime, Memory:MemorySize, Timeout:Timeout}' --output table
+$query = 'Functions[?starts_with(FunctionName, `"medextract`")].{Name:FunctionName, Runtime:Runtime, Memory:MemorySize, Timeout:Timeout}'
+aws lambda list-functions --query $query --output table
 
 Write-Host ""
 Write-Host "🌐 API Gateway:" -ForegroundColor Cyan
-aws apigateway get-rest-apis --query 'items[?contains(name, `"MedExtract`")].{Name:name, ID:id, Endpoint:id}' --output table
+$query = 'items[?contains(name, `"MedExtract`")].{Name:name, ID:id, Endpoint:id}'
+aws apigateway get-rest-apis --query $query --output table
 
 Write-Host ""
 Write-Host "📊 DynamoDB Tables:" -ForegroundColor Cyan
-aws dynamodb list-tables --query 'TableNames[?starts_with(@, `"medextract`")]' --output table
+$query = 'TableNames[?starts_with(@, `"medextract`")]'
+aws dynamodb list-tables --query $query --output table
 
 Write-Host ""
 Write-Host "🪣 S3 Buckets:" -ForegroundColor Cyan
@@ -42,6 +45,7 @@ Write-Host "API Gateway:       https://console.aws.amazon.com/apigateway/home?re
 Write-Host "DynamoDB:          https://console.aws.amazon.com/dynamodbv2/home?region=us-east-1#tables" -ForegroundColor White
 Write-Host "S3:                https://console.aws.amazon.com/s3/home?region=us-east-1" -ForegroundColor White
 Write-Host "CloudWatch Logs:   https://console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups" -ForegroundColor White
+
 Write-Host ""
 Write-Host "Your API Gateway URL:" -ForegroundColor Yellow
-Write-Host 'https://kya7rp5m26.execute-api.us-east-1.amazonaws.com/dev/' -ForegroundColor Cyan
+Write-Host "https://kya7rp5m26.execute-api.us-east-1.amazonaws.com/dev/" -ForegroundColor Cyan
