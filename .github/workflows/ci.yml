@@ -34,7 +34,7 @@ jobs:
       
       - name: Code formatting check (Black)
         working-directory: ./backend
-        run: black --check app/
+        run: black --check app/ --line-length 100
       
       - name: Linting (Flake8)
         working-directory: ./backend
