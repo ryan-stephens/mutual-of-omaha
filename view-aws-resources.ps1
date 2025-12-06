@@ -48,4 +48,5 @@ Write-Host "CloudWatch Logs:   https://console.aws.amazon.com/cloudwatch/home?re
 
 Write-Host ""
 Write-Host "Your API Gateway URL:" -ForegroundColor Yellow
-Write-Host "https://kya7rp5m26.execute-api.us-east-1.amazonaws.com/dev/" -ForegroundColor Cyan
+$url = 'https://kya7rp5m26.execute-api.us-east-1.amazonaws.com/dev/'
+Write-Host $url -ForegroundColor Cyan
