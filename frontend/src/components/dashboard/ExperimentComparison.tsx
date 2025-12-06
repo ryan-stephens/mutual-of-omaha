@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import config from '../../config';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -22,11 +22,45 @@ interface ComparisonResult {
 }
 
 export default function ExperimentComparison() {
+  const [availableVersions, setAvailableVersions] = useState<string[]>([]);
   const [controlVersion, setControlVersion] = useState('v1.1.0');
   const [treatmentVersion, setTreatmentVersion] = useState('v2.0.0');
   const [comparison, setComparison] = useState<ComparisonResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [versionsLoading, setVersionsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchVersions = async () => {
+      setVersionsLoading(true);
+      try {
+        const res = await fetch(`${config.apiBaseUrl}/api/prompts/versions`);
+        if (!res.ok) {
+          throw new Error('Failed to fetch prompt versions');
+        }
+        const data = await res.json();
+        const versions = data.versions || [];
+        setAvailableVersions(versions);
+        
+        // Set default control and treatment versions
+        if (versions.length >= 2) {
+          setControlVersion(versions[0]);
+          setTreatmentVersion(versions[1]);
+        } else if (versions.length === 1) {
+          setControlVersion(versions[0]);
+          setTreatmentVersion(versions[0]);
+        }
+      } catch (err) {
+        console.error('Failed to fetch versions:', err);
+        // Fallback to hardcoded versions
+        setAvailableVersions(['v1.0.0', 'v1.1.0', 'v2.0.0']);
+      } finally {
+        setVersionsLoading(false);
+      }
+    };
+
+    fetchVersions();
+  }, []);
 
   const runComparison = async () => {
     setLoading(true);
@@ -97,11 +131,18 @@ export default function ExperimentComparison() {
             <select
               value={controlVersion}
               onChange={(e) => setControlVersion(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={versionsLoading}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
             >
-              <option value="v1.0.0">v1.0.0</option>
-              <option value="v1.1.0">v1.1.0</option>
-              <option value="v2.0.0">v2.0.0</option>
+              {versionsLoading ? (
+                <option>Loading versions...</option>
+              ) : (
+                availableVersions.map((version) => (
+                  <option key={version} value={version}>
+                    {version}
+                  </option>
+                ))
+              )}
             </select>
           </div>
 
@@ -112,11 +153,18 @@ export default function ExperimentComparison() {
             <select
               value={treatmentVersion}
               onChange={(e) => setTreatmentVersion(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={versionsLoading}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
             >
-              <option value="v1.0.0">v1.0.0</option>
-              <option value="v1.1.0">v1.1.0</option>
-              <option value="v2.0.0">v2.0.0</option>
+              {versionsLoading ? (
+                <option>Loading versions...</option>
+              ) : (
+                availableVersions.map((version) => (
+                  <option key={version} value={version}>
+                    {version}
+                  </option>
+                ))
+              )}
             </select>
           </div>
 
