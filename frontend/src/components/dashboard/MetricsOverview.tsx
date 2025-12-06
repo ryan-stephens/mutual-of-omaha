@@ -227,13 +227,33 @@ export default function MetricsOverview({ promptVersion }: Props) {
             <div>
               <span className="text-sm text-gray-600">First Request</span>
               <p className="text-sm font-medium text-gray-900 mt-1">
-                {new Date(metrics.first_request).toLocaleString()}
+                {new Date(metrics.first_request).toLocaleString('en-US', {
+                  timeZone: 'America/Chicago',
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit',
+                  hour12: true,
+                })}
+                {' CST'}
               </p>
             </div>
             <div>
               <span className="text-sm text-gray-600">Last Request</span>
               <p className="text-sm font-medium text-gray-900 mt-1">
-                {new Date(metrics.last_request).toLocaleString()}
+                {new Date(metrics.last_request).toLocaleString('en-US', {
+                  timeZone: 'America/Chicago',
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: '2-digit',
+                  hour12: true,
+                })}
+                {' CST'}
               </p>
             </div>
             <div className="border-t pt-3 mt-3">
