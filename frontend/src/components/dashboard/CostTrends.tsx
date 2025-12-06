@@ -1,44 +1,118 @@
+import { useState, useEffect } from 'react';
 import { Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from 'recharts';
+import config from '../../config';
 
 interface Props {
-  promptVersion: string; // For future backend integration
+  promptVersion: string;
+}
+
+interface PromptMetrics {
+  prompt_version: string;
+  total_requests: number;
+  successful_requests: number;
+  failed_requests: number;
+  success_rate: number;
+  avg_processing_time_ms: number;
+  p50_processing_time_ms: number;
+  p95_processing_time_ms: number;
+  p99_processing_time_ms: number;
+  total_input_tokens: number;
+  total_output_tokens: number;
+  total_cost_usd: number;
+  avg_cost_per_request: number;
+  avg_field_completeness: number;
+  avg_fields_extracted: number;
+  first_request: string;
+  last_request: string;
 }
 
 export default function CostTrends({ promptVersion }: Props) {
-  // Mock historical data - in production, this would come from the backend
-  // promptVersion will be used to fetch version-specific cost data
-  void promptVersion;
-  
+  const [metrics, setMetrics] = useState<PromptMetrics | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const res = await fetch(`${config.apiBaseUrl}/api/metrics/prompts/${promptVersion}`);
+        if (!res.ok) {
+          if (res.status === 404) {
+            setMetrics(null);
+          } else {
+            throw new Error(`Failed to fetch metrics: ${res.statusText}`);
+          }
+        } else {
+          const data = await res.json();
+          setMetrics(data);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch metrics');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMetrics();
+  }, [promptVersion]);
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+          <div className="h-64 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !metrics) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="text-center text-gray-500">
+          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <p className="mt-2">No cost data available</p>
+          <p className="text-sm text-gray-400 mt-1">Process some documents with this prompt version to see cost analysis</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Generate cost trend data based on metrics
   const costData = [
-    { date: 'Day 1', cost: 0.0012, requests: 15 },
-    { date: 'Day 2', cost: 0.0025, requests: 28 },
-    { date: 'Day 3', cost: 0.0038, requests: 42 },
-    { date: 'Day 4', cost: 0.0051, requests: 56 },
-    { date: 'Day 5', cost: 0.0062, requests: 67 },
-    { date: 'Day 6', cost: 0.0074, requests: 81 },
-    { date: 'Day 7', cost: 0.0085, requests: 93 },
+    { 
+      date: 'Total', 
+      cost: metrics.total_cost_usd, 
+      requests: metrics.total_requests 
+    },
   ];
 
-  const totalCost = costData.reduce((sum, d) => sum + d.cost, 0);
-  const totalRequests = costData.reduce((sum, d) => sum + d.requests, 0);
-  const avgCostPerRequest = totalCost / totalRequests;
+  const totalCost = metrics.total_cost_usd;
+  const totalRequests = metrics.total_requests;
+  const avgCostPerRequest = metrics.avg_cost_per_request;
 
-  // Cost breakdown by model pricing
-  const inputTokenCost = 0.00025 / 1000; // per token
-  const outputTokenCost = 0.00125 / 1000; // per token
-  const avgInputTokens = 1500;
-  const avgOutputTokens = 300;
+  // Cost breakdown by token type
+  const inputTokenCost = metrics.total_input_tokens * (0.00025 / 1000);
+  const outputTokenCost = metrics.total_output_tokens * (0.00125 / 1000);
+  const totalTokenCost = inputTokenCost + outputTokenCost;
 
   const costBreakdown = [
     { 
       component: 'Input Tokens',
-      cost: avgInputTokens * inputTokenCost,
-      percentage: (avgInputTokens * inputTokenCost) / (avgInputTokens * inputTokenCost + avgOutputTokens * outputTokenCost) * 100
+      cost: inputTokenCost,
+      percentage: totalTokenCost > 0 ? (inputTokenCost / totalTokenCost) * 100 : 0,
+      tokens: metrics.total_input_tokens
     },
     { 
       component: 'Output Tokens',
-      cost: avgOutputTokens * outputTokenCost,
-      percentage: (avgOutputTokens * outputTokenCost) / (avgInputTokens * inputTokenCost + avgOutputTokens * outputTokenCost) * 100
+      cost: outputTokenCost,
+      percentage: totalTokenCost > 0 ? (outputTokenCost / totalTokenCost) * 100 : 0,
+      tokens: metrics.total_output_tokens
     },
   ];
 
