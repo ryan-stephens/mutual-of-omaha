@@ -4,7 +4,7 @@ Main FastAPI application entry point
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import upload, process, results, prompts, experiments
+from app.routers import upload, process, results, prompts, experiments, lambda_metrics
 from app.config import settings
 import logging
 
@@ -40,6 +40,7 @@ app.include_router(process.router, prefix="/api", tags=["process"])
 app.include_router(results.router, prefix="/api", tags=["results"])
 app.include_router(prompts.router, prefix="/api", tags=["prompts"])
 app.include_router(experiments.router, prefix="/api", tags=["experiments", "mlops"])
+app.include_router(lambda_metrics.router, prefix="/api", tags=["lambda", "monitoring"])
 
 
 @app.get("/")

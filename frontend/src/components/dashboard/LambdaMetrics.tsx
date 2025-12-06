@@ -1,53 +1,48 @@
+import { useState, useEffect } from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import config from '../../config';
+
+interface FunctionMetric {
+  function_name: string;
+  invocations: number;
+  errors: number;
+  throttles: number;
+  avg_duration_ms: number;
+  p99_duration_ms: number;
+  cold_starts: number;
+  memory_used_mb: number;
+  memory_allocated_mb: number;
+  cost_usd: number;
+}
 
 export default function LambdaMetrics() {
-  // Mock Lambda metrics - in production, these would come from CloudWatch
-  const functionMetrics = [
-    {
-      function: 'upload',
-      invocations: 1245,
-      errors: 3,
-      throttles: 0,
-      avg_duration_ms: 145,
-      cold_starts: 12,
-      memory_used_mb: 178,
-      memory_allocated_mb: 512,
-      cost_usd: 0.0023
-    },
-    {
-      function: 'extract',
-      invocations: 1198,
-      errors: 8,
-      throttles: 2,
-      avg_duration_ms: 4523,
-      cold_starts: 15,
-      memory_used_mb: 1456,
-      memory_allocated_mb: 2048,
-      cost_usd: 0.1245
-    },
-    {
-      function: 'metrics',
-      invocations: 342,
-      errors: 0,
-      throttles: 0,
-      avg_duration_ms: 823,
-      cold_starts: 8,
-      memory_used_mb: 645,
-      memory_allocated_mb: 1024,
-      cost_usd: 0.0089
-    },
-    {
-      function: 'experiment',
-      invocations: 156,
-      errors: 1,
-      throttles: 0,
-      avg_duration_ms: 234,
-      cold_starts: 4,
-      memory_used_mb: 298,
-      memory_allocated_mb: 512,
-      cost_usd: 0.0012
-    }
-  ];
+  const [functionMetrics, setFunctionMetrics] = useState<FunctionMetric[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const res = await fetch(`${config.apiBaseUrl}/api/lambda/metrics?hours=24`);
+        if (!res.ok) {
+          throw new Error(`Failed to fetch Lambda metrics: ${res.statusText}`);
+        }
+        const data = await res.json();
+        setFunctionMetrics(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch Lambda metrics');
+        // Fallback to empty state - no mock data
+        setFunctionMetrics([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMetrics();
+  }, []);
 
   // Duration trends over time
   const durationTrends = [
@@ -73,7 +68,7 @@ export default function LambdaMetrics() {
 
   // Memory utilization by function
   const memoryData = functionMetrics.map(f => ({
-    name: f.function,
+    name: f.function_name,
     used: f.memory_used_mb,
     allocated: f.memory_allocated_mb,
     efficiency: ((f.memory_used_mb / f.memory_allocated_mb) * 100).toFixed(1)
@@ -84,6 +79,35 @@ export default function LambdaMetrics() {
   const totalErrors = functionMetrics.reduce((sum, f) => sum + f.errors, 0);
   const totalThrottles = functionMetrics.reduce((sum, f) => sum + f.throttles, 0);
   const errorRate = ((totalErrors / totalInvocations) * 100).toFixed(2);
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+          <div className="grid grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="h-24 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || functionMetrics.length === 0) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="text-center text-gray-500">
+          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <p className="mt-2">No Lambda metrics available</p>
+          <p className="text-sm text-gray-400 mt-1">{error || 'Unable to fetch CloudWatch metrics'}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -170,9 +194,9 @@ export default function LambdaMetrics() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {functionMetrics.map((func) => (
-                <tr key={func.function} className="hover:bg-gray-50">
+                <tr key={func.function_name} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="font-medium text-gray-900">{func.function}</span>
+                    <span className="font-medium text-gray-900">{func.function_name}</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {func.invocations.toLocaleString()}
