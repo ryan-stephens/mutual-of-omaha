@@ -1,15 +1,4 @@
 import { useState, useEffect } from 'react';
-import {
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  Area,
-  Line,
-  ComposedChart,
-} from 'recharts';
 import config from '../../config';
 
 interface Props {
@@ -93,33 +82,6 @@ export default function CostTrends({ promptVersion }: Props) {
     );
   }
 
-  // Generate cost trend data for the last 7 days
-  const generateCostTrend = () => {
-    const today = new Date();
-    const data = [];
-    const avgDailyCost = metrics.total_cost_usd / 7;
-    const avgDailyRequests = Math.floor(metrics.total_requests / 7);
-    
-    // Create data points for the last 7 days
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-      
-      // Add some variance to make it look realistic
-      const variance = 0.8 + Math.random() * 0.4; // 0.8x to 1.2x
-      
-      data.push({
-        date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        cost: parseFloat((avgDailyCost * variance).toFixed(6)),
-        requests: Math.floor(avgDailyRequests * variance),
-      });
-    }
-    
-    return data;
-  };
-
-  const costData = generateCostTrend();
-
   const totalCost = metrics.total_cost_usd;
   const totalRequests = metrics.total_requests;
   const avgCostPerRequest = metrics.avg_cost_per_request;
@@ -184,57 +146,33 @@ export default function CostTrends({ promptVersion }: Props) {
         </div>
       </div>
 
-      {/* Cost Trend Chart */}
-      <div className="lg:col-span-2">
+      {/* Cost Summary Grid */}
+      <div className="lg:col-span-2 space-y-6">
+        {/* Key Metrics */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h4 className="text-md font-semibold text-gray-900 mb-4">Cost Trends (Last 7 Days)</h4>
-          <ResponsiveContainer width="100%" height={300}>
-            <ComposedChart data={costData}>
-              <defs>
-                <linearGradient id="colorCost" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis 
-                yAxisId="left"
-                label={{ value: 'Cost ($)', angle: -90, position: 'insideLeft' }}
-                tickFormatter={(value) => `$${value.toFixed(4)}`}
-              />
-              <YAxis 
-                yAxisId="right" 
-                orientation="right"
-                label={{ value: 'Requests', angle: 90, position: 'insideRight' }}
-              />
-              <Tooltip 
-                formatter={(value: number, name: string) => {
-                  if (name === 'cost') return [`$${value.toFixed(4)}`, 'Cost'];
-                  return [value, 'Requests'];
-                }}
-              />
-              <Legend />
-              <Area 
-                yAxisId="left"
-                type="monotone" 
-                dataKey="cost" 
-                stroke="#8b5cf6" 
-                fillOpacity={1}
-                fill="url(#colorCost)"
-                name="Cost"
-              />
-              <Line 
-                yAxisId="right"
-                type="monotone" 
-                dataKey="requests" 
-                stroke="#10b981" 
-                strokeWidth={2}
-                dot={{ r: 4 }}
-                name="Requests"
-              />
-            </ComposedChart>
-          </ResponsiveContainer>
+          <h4 className="text-md font-semibold text-gray-900 mb-4">Cost Summary</h4>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="border-l-4 border-purple-500 pl-4">
+              <p className="text-sm text-gray-600">Total Requests</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{totalRequests.toLocaleString()}</p>
+              <p className="text-xs text-gray-500 mt-1">All time</p>
+            </div>
+            <div className="border-l-4 border-blue-500 pl-4">
+              <p className="text-sm text-gray-600">Avg Cost/Request</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">${avgCostPerRequest.toFixed(6)}</p>
+              <p className="text-xs text-gray-500 mt-1">${(avgCostPerRequest * 1000).toFixed(4)}/1K</p>
+            </div>
+            <div className="border-l-4 border-green-500 pl-4">
+              <p className="text-sm text-gray-600">Input Tokens</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{metrics.total_input_tokens.toLocaleString()}</p>
+              <p className="text-xs text-gray-500 mt-1">${inputTokenCost.toFixed(4)}</p>
+            </div>
+            <div className="border-l-4 border-orange-500 pl-4">
+              <p className="text-sm text-gray-600">Output Tokens</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{metrics.total_output_tokens.toLocaleString()}</p>
+              <p className="text-xs text-gray-500 mt-1">${outputTokenCost.toFixed(4)}</p>
+            </div>
+          </div>
         </div>
 
         {/* Cost Projections */}
