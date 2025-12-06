@@ -1,62 +1,62 @@
-name: Auto Deploy Dev on Push
-
-on:
-  push:
-    branches:
-      - main
-
-env:
-  PYTHON_VERSION: '3.11'
-  AWS_REGION: 'us-east-1'
-
-jobs:
-  deploy-dev:
-    name: Deploy to Dev
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-      
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-      
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-      
-      - name: Install CDK
-        run: npm install -g aws-cdk
-      
-      - name: Install CDK dependencies
-        working-directory: ./infrastructure
-        run: |
-          npm install
-          pip install -r requirements.txt
-      
-      - name: CDK Deploy
-        working-directory: ./infrastructure
-        run: cdk deploy --require-approval never
-      
-      - name: Deployment notification
-        if: success()
-        run: |
-          echo "✅ Dev deployment successful!"
-          echo "Commit: ${{ github.sha }}"
-          echo "Author: ${{ github.actor }}"
-      
-      - name: Deployment failure notification
-        if: failure()
-        run: |
-          echo "❌ Dev deployment failed!"
-          exit 1
+#name: Auto Deploy Dev on Push
+#
+#on:
+#  push:
+#    branches:
+#      - main
+#
+#env:
+#  PYTHON_VERSION: '3.11'
+#  AWS_REGION: 'us-east-1'
+#
+#jobs:
+#  deploy-dev:
+#    name: Deploy to Dev
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v4
+#
+#      - name: Configure AWS credentials
+#        uses: aws-actions/configure-aws-credentials@v4
+#        with:
+#          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#          aws-region: ${{ env.AWS_REGION }}
+#
+#      - name: Set up Node.js
+#        uses: actions/setup-node@v4
+#        with:
+#          node-version: '18'
+#
+#      - name: Set up Python
+#        uses: actions/setup-python@v5
+#        with:
+#          python-version: ${{ env.PYTHON_VERSION }}
+#
+#      - name: Install CDK
+#        run: npm install -g aws-cdk
+#
+#      - name: Install CDK dependencies
+#        working-directory: ./infrastructure
+#        run: |
+#          npm install
+#          pip install -r requirements.txt
+#
+#      - name: CDK Deploy
+#        working-directory: ./infrastructure
+#        run: cdk deploy --require-approval never
+#
+#      - name: Deployment notification
+#        if: success()
+#        run: |
+#          echo "✅ Dev deployment successful!"
+#          echo "Commit: ${{ github.sha }}"
+#          echo "Author: ${{ github.actor }}"
+#
+#      - name: Deployment failure notification
+#        if: failure()
+#        run: |
+#          echo "❌ Dev deployment failed!"
+#          exit 1
